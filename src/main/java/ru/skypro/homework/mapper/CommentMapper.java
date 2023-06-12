@@ -3,10 +3,8 @@ package ru.skypro.homework.mapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
-import org.mapstruct.Named;
-import org.mapstruct.factory.Mappers;
-import org.springframework.beans.factory.annotation.Autowired;
 import ru.skypro.homework.dto.CommentDto;
+import ru.skypro.homework.dto.ResponseWrapperCommentDto;
 import ru.skypro.homework.model.Comment;
 
 import java.time.Instant;
@@ -15,9 +13,20 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
 
-
 @Mapper(componentModel = "spring")
 public interface CommentMapper {
+    static LocalDateTime toLocalDate(Long millis) {
+        if (millis == null) {
+            return null;
+        }
+        return Instant.ofEpochMilli(millis).atZone(ZoneId.systemDefault()).toLocalDateTime();
+    }
+
+    static Long localDateTimeToMillis(LocalDateTime localDateTime) {
+        ZonedDateTime zdt = ZonedDateTime.of(localDateTime, ZoneId.systemDefault());
+        return zdt.toInstant().toEpochMilli();
+    }
+
     @Mapping(source = "id", target = "pk")
     @Mapping(source = "author.id", target = "author")
     @Mapping(source = "author.image", target = "authorImage")
@@ -34,15 +43,12 @@ public interface CommentMapper {
     @Mapping(target = "author", ignore = true)
     void updateComment(CommentDto commentDto, @MappingTarget Comment comment);
 
-    static LocalDateTime toLocalDate(Long millis) {
-        if (millis == null) {
-            return null;
-        }
-        return Instant.ofEpochMilli(millis).atZone(ZoneId.systemDefault()).toLocalDateTime();
-    }
+    List<CommentDto> commentListToCommentDtoList(List<Comment> comments);
 
-    static Long localDateTimeToMillis(LocalDateTime localDateTime) {
-        ZonedDateTime zdt = ZonedDateTime.of(localDateTime, ZoneId.systemDefault());
-        return zdt.toInstant().toEpochMilli();
+    default ResponseWrapperCommentDto listToRespWrapperCommentDto(List<Comment> comments) {
+        ResponseWrapperCommentDto result = new ResponseWrapperCommentDto();
+        result.setCount(comments.size());
+        result.setResults(commentListToCommentDtoList(comments));
+        return result;
     }
 }
