@@ -1,0 +1,28 @@
+### Set new pass
+POST http://localhost:8080/users/set_password
+c
+Authorization: Basic user@gmail.com password
+
+{
+  "newPassword": "new",
+  "currentPassword": "current"
+}
+
+### Update user info
+PATCH http://localhost:8080/users/me
+Content-Type: application/json
+Authorization: Basic user@gmail.com password
+
+{
+  "id": 1,
+  "firstName": "first",
+  "lastName": "last",
+  "phone": "+7"
+}
+
+### Get info
+GET http://localhost:8080/users/me
+Content-Type: application/json
+Authorization: Basic user@gmail.com password
+
+

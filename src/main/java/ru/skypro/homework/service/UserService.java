@@ -52,7 +52,7 @@ public class UserService {
      */
     public UserDto updateInfo(Authentication auth, UserDto userDto) {
         log.info("update user info: " + userDto);
-        User user = userRepository.findByEmail(userDto.getEmail());
+        User user = userRepository.findByEmail(auth.getName());
         if (user == null) {
             throw new UserUnauthorizedException("User not found");
         }
