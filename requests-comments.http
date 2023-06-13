@@ -1,0 +1,26 @@
+###Create comment
+POST http://localhost:8080/ads/1/comments
+Content-Type: application/json
+Authorization: Basic user@gmail.com password
+
+{
+  "text": "new comment"
+}
+
+### Delete comment
+DELETE http://localhost:8080/ads/1/comments/23
+Authorization: Basic user@gmail.com password
+
+### Update comment
+PATCH http://localhost:8080/ads/1/comments/24
+Content-Type: application/json
+Authorization: Basic user@gmail.com password
+
+{
+  "text": "updated comment"
+}
+
+### Find all for advert
+GET http://localhost:8080/ads/1/comments
+Content-Type: application/json
+Authorization: Basic user@gmail.com password

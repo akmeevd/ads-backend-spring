@@ -39,3 +39,4 @@ GET http://localhost:8080/ads/1
 
 ### Find adverts for user
 GET http://localhost:8080/ads/me
+Authorization: Basic user@gmail.com password

@@ -33,9 +33,10 @@ public class AdvertController {
                     implementation = AdsDto.class), mediaType = MediaType.APPLICATION_JSON_VALUE)}),
             @ApiResponse(responseCode = "401", content = {@Content(schema = @Schema())})}
     )
-    public ResponseEntity<AdsDto> create(@RequestPart CreateAdsDto properties,
+    public ResponseEntity<AdsDto> create(Authentication auth,
+                                         @RequestPart CreateAdsDto properties,
                                          @RequestPart(name = "image") MultipartFile image) {
-        return new ResponseEntity<>(advertService.create(properties), HttpStatus.CREATED);
+        return new ResponseEntity<>(advertService.create(auth, properties), HttpStatus.CREATED);
     }
 
     @DeleteMapping("/{id}")
@@ -98,8 +99,8 @@ public class AdvertController {
                     implementation = ResponseWrapperAdsDto.class), mediaType = MediaType.APPLICATION_JSON_VALUE)}),
             @ApiResponse(responseCode = "401", content = {@Content(schema = @Schema())})}
     )
-    public ResponseEntity<ResponseWrapperAdsDto> findAllByAuthUser() {
-        ResponseWrapperAdsDto responseWrapperAdsDto = advertService.findAllByAuthUser();
+    public ResponseEntity<ResponseWrapperAdsDto> findAllByAuthUser(Authentication auth) {
+        ResponseWrapperAdsDto responseWrapperAdsDto = advertService.findAllByAuthUser(auth);
         return ResponseEntity.ok(responseWrapperAdsDto);
     }
 }
