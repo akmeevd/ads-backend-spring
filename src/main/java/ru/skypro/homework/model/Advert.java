@@ -25,7 +25,7 @@ public class Advert {
     @ManyToOne
     @JoinColumn(name = "image_id", referencedColumnName = "id")
     private Image image;
-    @OneToMany(mappedBy = "advert")
+    @OneToMany(mappedBy = "advert", cascade = CascadeType.REMOVE)
     private List<Comment> comments;
 
     @Override
