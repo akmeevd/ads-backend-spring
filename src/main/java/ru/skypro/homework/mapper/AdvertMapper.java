@@ -8,20 +8,26 @@ import ru.skypro.homework.dto.CreateAdsDto;
 import ru.skypro.homework.dto.FullAdsDto;
 import ru.skypro.homework.dto.ResponseWrapperAdsDto;
 import ru.skypro.homework.model.Advert;
+import ru.skypro.homework.model.Image;
 
 import java.util.List;
 
 @Mapper(componentModel = "spring")
 public interface AdvertMapper {
+    static String imageToUrl(Image image) {
+        if (image == null) {
+            return "";
+        }
+        return "/ads/" + image.getId() + "/image";
+    }
+
     Advert createAdsDtoToAdvert(CreateAdsDto createAdsDto);
 
     @Mapping(target = "pk", source = "id")
-    @Mapping(target = "image", constant = "link to image")
     @Mapping(target = "author", source = "author.id")
     AdsDto advertToAdsDto(Advert advert);
 
     @Mapping(target = "pk", source = "id")
-    @Mapping(target = "image", constant = "link to image")
     @Mapping(target = "authorFirstName", source = "author.firstName")
     @Mapping(target = "authorLastName", source = "author.lastName")
     @Mapping(target = "email", source = "author.email")
