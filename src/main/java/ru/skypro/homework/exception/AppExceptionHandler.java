@@ -23,4 +23,9 @@ public class AppExceptionHandler {
     public ResponseEntity<Object> handlerUserUnauthorizedException(RuntimeException e, WebRequest request) {
         return new ResponseEntity<>(e.getMessage(), new HttpHeaders(), HttpStatus.UNAUTHORIZED);
     }
+
+    @ExceptionHandler(PhotoUploadException.class)
+    public ResponseEntity<Object> handlerPhotoUploadException(RuntimeException e, WebRequest request) {
+        return new ResponseEntity<>(e.getMessage(), new HttpHeaders(), HttpStatus.BAD_REQUEST);
+    }
 }

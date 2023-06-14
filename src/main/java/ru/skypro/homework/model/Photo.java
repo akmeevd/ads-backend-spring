@@ -4,36 +4,35 @@ import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.*;
-import java.util.List;
+import java.nio.file.Path;
 import java.util.Objects;
 
 @Getter
 @Setter
-@Entity
-@Table(name = "adverts")
-public class Advert {
+@MappedSuperclass
+public abstract class Photo {
+    public enum PhotoType {AVATAR, IMAGE}
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(nullable = false)
     private int id;
-    private String title;
-    private String description;
-    private int price;
-    @ManyToOne
-    @JoinColumn(name = "user_id", referencedColumnName = "id")
-    private User author;
-    @ManyToOne
-    @JoinColumn(name = "image_id", referencedColumnName = "id")
-    private Image image;
-    @OneToMany(mappedBy = "advert")
-    private List<Comment> comments;
+    @Enumerated(EnumType.STRING)
+    private PhotoType photoType;
+    private String photoDir;
+    private String fileType;
+    private String fileName;
+    private String fileExtension;
+    private long fileSize;
+
+    public abstract Path getFilePath();
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        Advert advert = (Advert) o;
-        return id == advert.id;
+        Photo photo = (Photo) o;
+        return id == photo.id;
     }
 
     @Override
