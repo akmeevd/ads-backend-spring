@@ -13,7 +13,19 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import ru.skypro.homework.dto.NewPasswordDto;
 import ru.skypro.homework.dto.UserDto;
+import ru.skypro.homework.mapper.UserMapper;
+import ru.skypro.homework.model.Avatar;
+import ru.skypro.homework.model.Image;
+import ru.skypro.homework.model.User;
 import ru.skypro.homework.service.UserService;
+
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 @Slf4j
 @CrossOrigin(value = "http://localhost:3000")
@@ -53,18 +65,31 @@ public class UserController {
             @ApiResponse(responseCode = "200", content = {@Content(schema = @Schema())}),
             @ApiResponse(responseCode = "401", content = {@Content(schema = @Schema())})}
     )
-    public ResponseEntity<?> updateImage(Authentication auth, @RequestParam("image") MultipartFile image) {
-        userService.updateImage(auth, image);
-        return ResponseEntity.ok().build();
+    public ResponseEntity<byte[]> updateImage(Authentication auth, @RequestParam("image") MultipartFile avatar) throws IOException {
+        return ResponseEntity.ok(userService.updateImage(auth, avatar));
     }
 
-    @GetMapping("/me")
-    @Operation(summary = "Получить информацию об авторизованном пользователе", responses = {
-            @ApiResponse(responseCode = "200", content = {@Content(schema = @Schema(
-                    implementation = UserDto.class), mediaType = MediaType.APPLICATION_JSON_VALUE)}),
-            @ApiResponse(responseCode = "401", content = {@Content(schema = @Schema())})}
-    )
-    public ResponseEntity<UserDto> findInfo(Authentication auth) {
-        return ResponseEntity.ok(userService.findInfo(auth));
+    @GetMapping("/me/image")
+    public void downloadImage(Authentication authentication,
+                              HttpServletResponse response) throws IOException {
+        Avatar avatar = userService.downloadImage(authentication);
+        Path path = avatar.getFilePath();
+        try (InputStream is = Files.newInputStream(path);
+             OutputStream os = response.getOutputStream();) {
+            response.setContentType(avatar.getFileType());
+            response.setContentLength((int) avatar.getFileSize());
+            is.transferTo(os);
+        }
     }
-}
+
+        @GetMapping("/me")
+        @Operation(summary = "Получить информацию об авторизованном пользователе", responses = {
+                @ApiResponse(responseCode = "200", content = {@Content(schema = @Schema(
+                        implementation = UserDto.class), mediaType = MediaType.APPLICATION_JSON_VALUE)}),
+                @ApiResponse(responseCode = "401", content = {@Content(schema = @Schema())})}
+        )
+        public ResponseEntity<UserDto> findInfo (Authentication auth){
+
+            return ResponseEntity.ok(userService.findInfo(auth));
+        }
+    }

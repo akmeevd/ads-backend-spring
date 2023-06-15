@@ -21,7 +21,9 @@ public class User {
     private String firstName;
     private String lastName;
     private String phone;
-    private String image;
+    @OneToOne
+    @JoinColumn(name = "avatar_id")
+    private Avatar avatar;
     @Enumerated(EnumType.STRING)
     private Role role;
 

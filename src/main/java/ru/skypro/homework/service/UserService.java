@@ -8,10 +8,16 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import ru.skypro.homework.dto.NewPasswordDto;
 import ru.skypro.homework.dto.UserDto;
+import ru.skypro.homework.exception.AdvertNotFoundException;
 import ru.skypro.homework.exception.UserUnauthorizedException;
 import ru.skypro.homework.mapper.UserMapper;
+import ru.skypro.homework.model.Advert;
+import ru.skypro.homework.model.Avatar;
+import ru.skypro.homework.model.Image;
 import ru.skypro.homework.model.User;
 import ru.skypro.homework.repository.UserRepository;
+
+import java.io.IOException;
 
 /**
  * service for maintain users via {@link UserRepository}
@@ -23,13 +29,15 @@ public class UserService {
     private final UserMapper userMapper;
     private final UserDetailsManager manager;
     private final PasswordEncoder encoder;
+    private final PhotoService photoService;
 
     public UserService(UserRepository userRepository, UserMapper userMapper,
-                       UserDetailsManager manager, PasswordEncoder encoder) {
+                       UserDetailsManager manager, PasswordEncoder encoder, PhotoService photoService) {
         this.userRepository = userRepository;
         this.userMapper = userMapper;
         this.manager = manager;
         this.encoder = encoder;
+        this.photoService = photoService;
     }
 
     /**
@@ -67,9 +75,17 @@ public class UserService {
      * @param auth  authorized user
      * @param image image
      */
-    public void updateImage(Authentication auth, MultipartFile image) {
+    public byte[] updateImage(Authentication auth, MultipartFile image) throws IOException {
         log.info("update user image");
-        //to be done
+        User user = userRepository.findByEmail(auth.getName());
+        photoService.uploadAvatar(user, image);
+        return image.getBytes();
+    }
+
+    public Avatar downloadImage(Authentication authentication) {
+        log.info("Download user image with email: " + authentication.getName());
+        User user = userRepository.findByEmail(authentication.getName());
+        return user.getAvatar();
     }
 
     /**
