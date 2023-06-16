@@ -82,14 +82,13 @@ public class UserController {
         }
     }
 
-        @GetMapping("/me")
-        @Operation(summary = "Получить информацию об авторизованном пользователе", responses = {
-                @ApiResponse(responseCode = "200", content = {@Content(schema = @Schema(
-                        implementation = UserDto.class), mediaType = MediaType.APPLICATION_JSON_VALUE)}),
-                @ApiResponse(responseCode = "401", content = {@Content(schema = @Schema())})}
-        )
-        public ResponseEntity<UserDto> findInfo (Authentication auth){
-
-            return ResponseEntity.ok(userService.findInfo(auth));
-        }
+    @GetMapping("/me")
+    @Operation(summary = "Получить информацию об авторизованном пользователе", responses = {
+            @ApiResponse(responseCode = "200", content = {@Content(schema = @Schema(
+                    implementation = UserDto.class), mediaType = MediaType.APPLICATION_JSON_VALUE)}),
+            @ApiResponse(responseCode = "401", content = {@Content(schema = @Schema())})}
+    )
+    public ResponseEntity<UserDto> findInfo(Authentication auth) {
+        return ResponseEntity.ok(userService.findInfo(auth));
     }
+}

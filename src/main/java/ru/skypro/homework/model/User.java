@@ -21,8 +21,8 @@ public class User {
     private String firstName;
     private String lastName;
     private String phone;
-    @OneToOne
-    @JoinColumn(name = "avatar_id")
+    @ManyToOne
+    @JoinColumn(name = "avatar_id", referencedColumnName = "id")
     private Avatar avatar;
     @Enumerated(EnumType.STRING)
     private Role role;
