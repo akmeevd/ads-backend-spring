@@ -6,11 +6,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import ru.skypro.homework.exception.PhotoUploadException;
-import ru.skypro.homework.model.Advert;
-import ru.skypro.homework.model.Image;
-import ru.skypro.homework.model.Photo;
-import ru.skypro.homework.model.User;
+import ru.skypro.homework.model.*;
 import ru.skypro.homework.repository.PhotoRepository;
+import ru.skypro.homework.repository.UserRepository;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -28,9 +26,11 @@ public class PhotoService {
     private String avatarsDir;
 
     private final PhotoRepository photoRepository;
+    private final UserRepository userRepository;
 
-    public PhotoService(PhotoRepository photoRepository) {
+    public PhotoService(PhotoRepository photoRepository, UserRepository userRepository) {
         this.photoRepository = photoRepository;
+        this.userRepository = userRepository;
     }
 
     /**
@@ -77,15 +77,24 @@ public class PhotoService {
     /**
      * Update user avatar
      *
-     * @param user user object
+     *
      * @param file avatar file
      * @return photo object
      */
     @Transactional
     public Photo uploadAvatar(User user, MultipartFile file) {
         log.info("upload user avatar");
-        //to be done
-        return null;
+        try {
+            Avatar avatar = new Avatar(avatarsDir);
+            mapFileToAvatar(file, avatar);
+            photoRepository.save(avatar);
+            upload(avatar, file);
+            user.setAvatar(avatar);
+            userRepository.save(user);
+            return avatar;
+        }catch (Exception e) {
+            throw new PhotoUploadException(e.getMessage());
+        }
     }
 
     private void upload(Photo photo, MultipartFile file) throws IOException {
@@ -111,4 +120,12 @@ public class PhotoService {
         image.setFileExtension(getFileExtensions(Objects.requireNonNull(file.getOriginalFilename())));
         image.setFileSize(file.getSize());
     }
+
+    private void mapFileToAvatar(MultipartFile file, Avatar avatar) {
+        avatar.setFileType(file.getContentType());
+        avatar.setFileName(file.getOriginalFilename());
+        avatar.setFileExtension(getFileExtensions(Objects.requireNonNull(file.getOriginalFilename())));
+        avatar.setFileSize(file.getSize());
+    }
+
 }

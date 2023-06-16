@@ -54,3 +54,6 @@ create table if not exists photos
 );
 alter table adverts drop column image;
 alter table adverts add column image_id integer references photos(id);
+
+--changeSet akmeevd:2
+alter table users add column avatar_id integer references photos (id);

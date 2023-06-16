@@ -1,5 +1,6 @@
 package ru.skypro.homework.mapper;
 
+import org.mapstruct.InheritInverseConfiguration;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
@@ -26,16 +27,16 @@ public interface CommentMapper {
         ZonedDateTime zdt = ZonedDateTime.of(localDateTime, ZoneId.systemDefault());
         return zdt.toInstant().toEpochMilli();
     }
-
     @Mapping(source = "id", target = "pk")
     @Mapping(source = "author.id", target = "author")
-    @Mapping(source = "author.image", target = "authorImage")
+    @Mapping(target = "authorImage", expression = "java(comment.getAuthor().getAvatar().getFilePath().toString())")
+//    @Mapping(source = "author.avatar", target = "authorImage")
     @Mapping(source = "author.firstName", target = "authorFirstName")
     CommentDto commentToCommentDto(Comment comment);
 
+
     @Mapping(target = "id", source = "pk")
     @Mapping(source = "author", target = "author.id")
-    @Mapping(source = "authorImage", target = "author.image")
     @Mapping(source = "authorFirstName", target = "author.firstName")
     Comment commentDtoToComment(CommentDto commentDto);
 
