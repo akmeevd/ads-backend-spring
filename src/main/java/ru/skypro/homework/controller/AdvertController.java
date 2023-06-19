@@ -13,7 +13,15 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import ru.skypro.homework.dto.*;
+import ru.skypro.homework.model.Image;
 import ru.skypro.homework.service.AdvertService;
+
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 @Slf4j
 @CrossOrigin(value = "http://localhost:3000")
@@ -33,9 +41,10 @@ public class AdvertController {
                     implementation = AdsDto.class), mediaType = MediaType.APPLICATION_JSON_VALUE)}),
             @ApiResponse(responseCode = "401", content = {@Content(schema = @Schema())})}
     )
-    public ResponseEntity<AdsDto> create(@RequestPart CreateAdsDto properties,
-                                         @RequestPart(name = "image") MultipartFile image) {
-        return new ResponseEntity<>(advertService.create(properties), HttpStatus.CREATED);
+    public ResponseEntity<AdsDto> create(Authentication auth,
+                                         @RequestPart CreateAdsDto properties,
+                                         @RequestPart(name = "image") MultipartFile file) {
+        return new ResponseEntity<>(advertService.create(auth, properties, file), HttpStatus.CREATED);
     }
 
     @DeleteMapping("/{id}")
@@ -64,13 +73,29 @@ public class AdvertController {
     @PatchMapping(value = "/{id}/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "Обновить картинку объявления", responses = {
             @ApiResponse(responseCode = "200", content = {@Content(schema = @Schema(
-                    implementation = String.class), mediaType = MediaType.APPLICATION_OCTET_STREAM_VALUE)}),
+                    implementation = byte[].class), mediaType = MediaType.APPLICATION_OCTET_STREAM_VALUE)}),
             @ApiResponse(responseCode = "401", content = {@Content(schema = @Schema())}),
             @ApiResponse(responseCode = "403", content = {@Content(schema = @Schema())})}
     )
-    public ResponseEntity<String> updateImage(@PathVariable("id") Integer id,
-                                              @RequestParam("image") MultipartFile image) {
-        return ResponseEntity.ok().build();
+    public ResponseEntity<byte[]> updateImage(@PathVariable("id") Integer id,
+                                              @RequestParam("image") MultipartFile file) throws IOException {
+        return ResponseEntity.ok(advertService.updateImage(id, file));
+    }
+
+    @GetMapping("/{id}/image")
+    @Operation(summary = "Скачать картинку объявления", responses = {
+            @ApiResponse(responseCode = "200", content = {@Content(schema = @Schema())})}
+    )
+    public void downloadImage(@PathVariable("id") Integer id,
+                              HttpServletResponse response) throws IOException {
+        Image image = advertService.downloadImage(id);
+        Path path = image.getFilePath();
+        try (InputStream is = Files.newInputStream(path);
+             OutputStream os = response.getOutputStream();) {
+            response.setContentType(image.getFileType());
+            response.setContentLength((int) image.getFileSize());
+            is.transferTo(os);
+        }
     }
 
     @GetMapping
@@ -98,8 +123,8 @@ public class AdvertController {
                     implementation = ResponseWrapperAdsDto.class), mediaType = MediaType.APPLICATION_JSON_VALUE)}),
             @ApiResponse(responseCode = "401", content = {@Content(schema = @Schema())})}
     )
-    public ResponseEntity<ResponseWrapperAdsDto> findAllByAuthUser() {
-        ResponseWrapperAdsDto responseWrapperAdsDto = advertService.findAllByAuthUser();
+    public ResponseEntity<ResponseWrapperAdsDto> findAllByAuthUser(Authentication auth) {
+        ResponseWrapperAdsDto responseWrapperAdsDto = advertService.findAllByAuthUser(auth);
         return ResponseEntity.ok(responseWrapperAdsDto);
     }
 }

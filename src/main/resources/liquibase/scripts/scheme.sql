@@ -40,3 +40,20 @@ alter table comments add column advert_id integer references adverts (id);
 -- changeSet 11th:2
 alter table comments drop column created_at;
 alter table comments add column created_at timestamp;
+
+-- changeSet 11th:3
+create table if not exists photos
+(
+    id              serial primary key not null,
+    photo_type      varchar(10),
+    photo_dir       varchar(50),
+    file_type       varchar(30),
+    file_name       varchar(100),
+    file_extension  varchar(10),
+    file_size       bigint
+);
+alter table adverts drop column image;
+alter table adverts add column image_id integer references photos(id);
+
+--changeSet akmeevd:2
+alter table users add column avatar_id integer references photos (id);

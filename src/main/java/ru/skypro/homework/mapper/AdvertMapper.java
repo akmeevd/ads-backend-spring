@@ -16,16 +16,16 @@ public interface AdvertMapper {
     Advert createAdsDtoToAdvert(CreateAdsDto createAdsDto);
 
     @Mapping(target = "pk", source = "id")
-    @Mapping(target = "image", constant = "link to image")
     @Mapping(target = "author", source = "author.id")
+    @Mapping(target = "image", expression = "java(getUrlToImage(advert))")
     AdsDto advertToAdsDto(Advert advert);
 
     @Mapping(target = "pk", source = "id")
-    @Mapping(target = "image", constant = "link to image")
     @Mapping(target = "authorFirstName", source = "author.firstName")
     @Mapping(target = "authorLastName", source = "author.lastName")
     @Mapping(target = "email", source = "author.email")
     @Mapping(target = "phone", source = "author.phone")
+    @Mapping(target = "image", expression = "java(getUrlToImage(advert))")
     FullAdsDto advertToFullAdsDto(Advert advert);
 
     List<AdsDto> advertListToAdsDtoList(List<Advert> adverts);
@@ -37,5 +37,9 @@ public interface AdvertMapper {
         result.setCount(adverts.size());
         result.setResults(advertListToAdsDtoList(adverts));
         return result;
+    }
+
+    default String getUrlToImage(Advert advert) {
+        return "/ads/" + advert.getId() + "/image";
     }
 }

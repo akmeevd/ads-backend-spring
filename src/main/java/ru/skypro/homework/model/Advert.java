@@ -19,11 +19,13 @@ public class Advert {
     private String title;
     private String description;
     private int price;
-    private String image;
     @ManyToOne
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     private User author;
-    @OneToMany(mappedBy = "advert")
+    @ManyToOne
+    @JoinColumn(name = "image_id", referencedColumnName = "id")
+    private Image image;
+    @OneToMany(mappedBy = "advert", cascade = CascadeType.REMOVE)
     private List<Comment> comments;
 
     @Override

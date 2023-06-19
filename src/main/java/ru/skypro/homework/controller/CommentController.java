@@ -21,7 +21,6 @@ import ru.skypro.homework.service.CommentService;
 @RequestMapping("/ads")
 @Tag(name = "Комментарии")
 public class CommentController {
-
     private final CommentService commentService;
 
     public CommentController(CommentService commentService) {
@@ -37,8 +36,7 @@ public class CommentController {
     public ResponseEntity<CommentDto> create(Authentication auth,
                                              @PathVariable("id") Integer id,
                                              @RequestBody CommentDto text) {
-        commentService.create(auth, id, text);
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+        return new ResponseEntity<>(commentService.create(auth, id, text), HttpStatus.CREATED);
     }
 
     @DeleteMapping("/{adId}/comments/{commentId}")
