@@ -2,7 +2,6 @@ package ru.skypro.homework.model;
 
 import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
-import javax.persistence.Table;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
