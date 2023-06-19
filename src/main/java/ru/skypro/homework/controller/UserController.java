@@ -13,10 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import ru.skypro.homework.dto.NewPasswordDto;
 import ru.skypro.homework.dto.UserDto;
-import ru.skypro.homework.mapper.UserMapper;
 import ru.skypro.homework.model.Avatar;
-import ru.skypro.homework.model.Image;
-import ru.skypro.homework.model.User;
 import ru.skypro.homework.service.UserService;
 
 import javax.servlet.http.HttpServletResponse;
@@ -25,7 +22,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 
 @Slf4j
 @CrossOrigin(value = "http://localhost:3000")
@@ -65,14 +61,33 @@ public class UserController {
             @ApiResponse(responseCode = "200", content = {@Content(schema = @Schema())}),
             @ApiResponse(responseCode = "401", content = {@Content(schema = @Schema())})}
     )
-    public ResponseEntity<byte[]> updateImage(Authentication auth, @RequestParam("image") MultipartFile avatar) throws IOException {
-        return ResponseEntity.ok(userService.updateImage(auth, avatar));
+    public ResponseEntity<byte[]> updateAvatar(Authentication auth, @RequestParam("image") MultipartFile avatar) throws IOException {
+        return ResponseEntity.ok(userService.updateAvatar(auth, avatar));
     }
 
     @GetMapping("/me/image")
-    public void downloadImage(Authentication authentication,
-                              HttpServletResponse response) throws IOException {
-        Avatar avatar = userService.downloadImage(authentication);
+    @Operation(summary = "Скачать аватар авторизованного пользователя", responses = {
+            @ApiResponse(responseCode = "200", content = {@Content(schema = @Schema())})}
+    )
+    public void downloadAvatar(Authentication authentication,
+                               HttpServletResponse response) throws IOException {
+        Avatar avatar = userService.downloadAvatar(authentication);
+        Path path = avatar.getFilePath();
+        try (InputStream is = Files.newInputStream(path);
+             OutputStream os = response.getOutputStream();) {
+            response.setContentType(avatar.getFileType());
+            response.setContentLength((int) avatar.getFileSize());
+            is.transferTo(os);
+        }
+    }
+
+    @GetMapping("/{id}/image")
+    @Operation(summary = "Скачать аватар пользователя", responses = {
+            @ApiResponse(responseCode = "200", content = {@Content(schema = @Schema())})}
+    )
+    public void downloadAvatar(@PathVariable("id") Integer id,
+                               HttpServletResponse response) throws IOException {
+        Avatar avatar = userService.downloadAvatarByUserId(id);
         Path path = avatar.getFilePath();
         try (InputStream is = Files.newInputStream(path);
              OutputStream os = response.getOutputStream();) {

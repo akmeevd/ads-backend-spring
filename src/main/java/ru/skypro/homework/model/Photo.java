@@ -9,16 +9,14 @@ import java.util.Objects;
 
 @Getter
 @Setter
-@MappedSuperclass
+@Entity(name="photos")
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+@DiscriminatorColumn(name="photo_type", discriminatorType = DiscriminatorType.STRING)
 public abstract class Photo {
-    public enum PhotoType {AVATAR, IMAGE}
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(nullable = false)
     private int id;
-    @Enumerated(EnumType.STRING)
-    private PhotoType photoType;
     private String photoDir;
     private String fileType;
     private String fileName;

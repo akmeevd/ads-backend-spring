@@ -1,19 +1,19 @@
 package ru.skypro.homework.model;
 
+import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
 @Entity
-@Table(name = "photos")
+@DiscriminatorValue("AVATAR")
 public class Avatar extends Photo {
     public Avatar() {
     }
 
     public Avatar(String dir) {
         this.setPhotoDir(dir);
-        this.setPhotoType(PhotoType.AVATAR);
     }
 
     @Override

@@ -19,6 +19,11 @@ public class AppExceptionHandler {
         return new ResponseEntity<>(e.getMessage(), new HttpHeaders(), HttpStatus.FORBIDDEN);
     }
 
+    @ExceptionHandler(UserNotFoundException.class)
+    public ResponseEntity<Object> handlerUserNotFoundException(RuntimeException e, WebRequest request) {
+        return new ResponseEntity<>(e.getMessage(), new HttpHeaders(), HttpStatus.FORBIDDEN);
+    }
+
     @ExceptionHandler(UserUnauthorizedException.class)
     public ResponseEntity<Object> handlerUserUnauthorizedException(RuntimeException e, WebRequest request) {
         return new ResponseEntity<>(e.getMessage(), new HttpHeaders(), HttpStatus.UNAUTHORIZED);
