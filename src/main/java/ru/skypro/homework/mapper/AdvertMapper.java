@@ -8,23 +8,16 @@ import ru.skypro.homework.dto.CreateAdsDto;
 import ru.skypro.homework.dto.FullAdsDto;
 import ru.skypro.homework.dto.ResponseWrapperAdsDto;
 import ru.skypro.homework.model.Advert;
-import ru.skypro.homework.model.Image;
 
 import java.util.List;
 
 @Mapper(componentModel = "spring")
 public interface AdvertMapper {
-    static String imageToUrl(Image image) {
-        if (image == null) {
-            return "";
-        }
-        return "/ads/" + image.getId() + "/image";
-    }
-
     Advert createAdsDtoToAdvert(CreateAdsDto createAdsDto);
 
     @Mapping(target = "pk", source = "id")
     @Mapping(target = "author", source = "author.id")
+    @Mapping(target = "image", expression = "java(getUrlToImage(advert))")
     AdsDto advertToAdsDto(Advert advert);
 
     @Mapping(target = "pk", source = "id")
@@ -32,6 +25,7 @@ public interface AdvertMapper {
     @Mapping(target = "authorLastName", source = "author.lastName")
     @Mapping(target = "email", source = "author.email")
     @Mapping(target = "phone", source = "author.phone")
+    @Mapping(target = "image", expression = "java(getUrlToImage(advert))")
     FullAdsDto advertToFullAdsDto(Advert advert);
 
     List<AdsDto> advertListToAdsDtoList(List<Advert> adverts);
@@ -43,5 +37,9 @@ public interface AdvertMapper {
         result.setCount(adverts.size());
         result.setResults(advertListToAdsDtoList(adverts));
         return result;
+    }
+
+    default String getUrlToImage(Advert advert) {
+        return "/ads/" + advert.getId() + "/image";
     }
 }

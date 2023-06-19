@@ -8,12 +8,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import ru.skypro.homework.dto.NewPasswordDto;
 import ru.skypro.homework.dto.UserDto;
-import ru.skypro.homework.exception.AdvertNotFoundException;
+import ru.skypro.homework.exception.UserNotFoundException;
 import ru.skypro.homework.exception.UserUnauthorizedException;
 import ru.skypro.homework.mapper.UserMapper;
-import ru.skypro.homework.model.Advert;
 import ru.skypro.homework.model.Avatar;
-import ru.skypro.homework.model.Image;
 import ru.skypro.homework.model.User;
 import ru.skypro.homework.repository.UserRepository;
 
@@ -75,16 +73,35 @@ public class UserService {
      * @param auth  authorized user
      * @param image image
      */
-    public byte[] updateImage(Authentication auth, MultipartFile image) throws IOException {
+    public byte[] updateAvatar(Authentication auth, MultipartFile image) throws IOException {
         log.info("update user image");
         User user = userRepository.findByEmail(auth.getName());
         photoService.uploadAvatar(user, image);
         return image.getBytes();
     }
 
-    public Avatar downloadImage(Authentication authentication) {
+    /**
+     * Download avatar authorized user
+     *
+     * @param authentication auth data
+     * @return avatar object
+     */
+    public Avatar downloadAvatar(Authentication authentication) {
         log.info("Download user image with email: " + authentication.getName());
         User user = userRepository.findByEmail(authentication.getName());
+        return user.getAvatar();
+    }
+
+    /**
+     * Download avatar by user id
+     *
+     * @param id user id
+     * @return avatar object
+     */
+    public Avatar downloadAvatarByUserId(int id) {
+        log.info("Download user image with id: " + id);
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
         return user.getAvatar();
     }
 

@@ -1,6 +1,5 @@
 package ru.skypro.homework.mapper;
 
-import org.mapstruct.InheritInverseConfiguration;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
@@ -24,14 +23,17 @@ public interface CommentMapper {
     }
 
     static Long localDateTimeToMillis(LocalDateTime localDateTime) {
+        if (localDateTime == null) {
+            return null;
+        }
         ZonedDateTime zdt = ZonedDateTime.of(localDateTime, ZoneId.systemDefault());
         return zdt.toInstant().toEpochMilli();
     }
+
     @Mapping(source = "id", target = "pk")
     @Mapping(source = "author.id", target = "author")
-    @Mapping(target = "authorImage", expression = "java(comment.getAuthor().getAvatar().getFilePath().toString())")
-//    @Mapping(source = "author.avatar", target = "authorImage")
     @Mapping(source = "author.firstName", target = "authorFirstName")
+    @Mapping(expression = "java(getUrlToAvatar(comment))", target = "authorImage")
     CommentDto commentToCommentDto(Comment comment);
 
 
@@ -51,5 +53,9 @@ public interface CommentMapper {
         result.setCount(comments.size());
         result.setResults(commentListToCommentDtoList(comments));
         return result;
+    }
+
+    default String getUrlToAvatar(Comment comment) {
+        return "/users/" + comment.getAuthor().getId() + "/image";
     }
 }
