@@ -1,26 +1,31 @@
 package ru.skypro.homework.service.impl;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.provisioning.UserDetailsManager;
+import org.springframework.security.provisioning.JdbcUserDetailsManager;
 import org.springframework.stereotype.Service;
 import ru.skypro.homework.dto.RegisterReqDto;
 import ru.skypro.homework.dto.Role;
+import ru.skypro.homework.repository.UserRepository;
 import ru.skypro.homework.service.AuthService;
+import ru.skypro.homework.service.UserService;
 
 @Service
 @Slf4j
 public class AuthServiceImpl implements AuthService {
 
-    private final UserDetailsManager manager;
+    private final JdbcUserDetailsManager manager;
 
     private final PasswordEncoder encoder;
 
-    public AuthServiceImpl(UserDetailsManager manager, PasswordEncoder passwordEncoder) {
+    private final UserService userService;
+
+
+    public AuthServiceImpl(JdbcUserDetailsManager manager, PasswordEncoder passwordEncoder, UserService userService) {
         this.manager = manager;
         this.encoder = passwordEncoder;
+        this.userService = userService;
     }
 
     /**
@@ -53,13 +58,7 @@ public class AuthServiceImpl implements AuthService {
         if (manager.userExists(registerReq.getUsername())) {
             return false;
         }
-        manager.createUser(
-                User.builder()
-                        .passwordEncoder(this.encoder::encode)
-                        .password(registerReq.getPassword())
-                        .username(registerReq.getUsername())
-                        .roles(role.name())
-                        .build());
+        userService.createUser(registerReq,role);
         return true;
     }
 }
