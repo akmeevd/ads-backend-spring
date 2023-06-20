@@ -3,10 +3,13 @@ package ru.skypro.homework.service;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.provisioning.JdbcUserDetailsManager;
 import org.springframework.security.provisioning.UserDetailsManager;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import ru.skypro.homework.dto.NewPasswordDto;
+import ru.skypro.homework.dto.RegisterReqDto;
+import ru.skypro.homework.dto.Role;
 import ru.skypro.homework.dto.UserDto;
 import ru.skypro.homework.exception.UserNotFoundException;
 import ru.skypro.homework.exception.UserUnauthorizedException;
@@ -22,15 +25,15 @@ import java.io.IOException;
  */
 @Service
 @Slf4j
-public class UserService {
+public class UserService{
     private final UserRepository userRepository;
     private final UserMapper userMapper;
-    private final UserDetailsManager manager;
+    private final JdbcUserDetailsManager manager;
     private final PasswordEncoder encoder;
     private final PhotoService photoService;
 
     public UserService(UserRepository userRepository, UserMapper userMapper,
-                       UserDetailsManager manager, PasswordEncoder encoder, PhotoService photoService) {
+                       JdbcUserDetailsManager manager, PasswordEncoder encoder, PhotoService photoService) {
         this.userRepository = userRepository;
         this.userMapper = userMapper;
         this.manager = manager;
@@ -114,5 +117,23 @@ public class UserService {
     public UserDto findInfo(Authentication auth) {
         User user = userRepository.findByEmail(auth.getName());
         return userMapper.userToUserDto(user);
+    }
+
+    public void createUser(RegisterReqDto reqDto, Role role) {
+        User user = new User();
+        user.setEmail(reqDto.getUsername());
+        user.setPassword(encoder.encode(reqDto.getPassword()));
+        user.setRole(role);
+        manager.createUser(user);
+        updateUser(reqDto,role);
+    }
+
+    public void updateUser(RegisterReqDto reqDto, Role role) {
+        User user = userRepository.findByEmail(reqDto.getUsername());
+        user.setPhone(reqDto.getPhone());
+        user.setFirstName(reqDto.getFirstName());
+        user.setLastName(reqDto.getLastName());
+        user.setRole(role);
+        userRepository.save(user);
     }
 }
