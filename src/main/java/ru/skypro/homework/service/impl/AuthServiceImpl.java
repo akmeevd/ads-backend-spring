@@ -7,7 +7,6 @@ import org.springframework.security.provisioning.JdbcUserDetailsManager;
 import org.springframework.stereotype.Service;
 import ru.skypro.homework.dto.RegisterReqDto;
 import ru.skypro.homework.dto.Role;
-import ru.skypro.homework.repository.UserRepository;
 import ru.skypro.homework.service.AuthService;
 import ru.skypro.homework.service.UserService;
 
@@ -58,7 +57,7 @@ public class AuthServiceImpl implements AuthService {
         if (manager.userExists(registerReq.getUsername())) {
             return false;
         }
-        userService.createUser(registerReq,role);
+        userService.create(registerReq, role);
         return true;
     }
 }

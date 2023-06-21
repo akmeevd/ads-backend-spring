@@ -23,7 +23,7 @@ public interface AdvertMapper {
     @Mapping(target = "pk", source = "id")
     @Mapping(target = "authorFirstName", source = "author.firstName")
     @Mapping(target = "authorLastName", source = "author.lastName")
-    @Mapping(target = "email", source = "author.email")
+    @Mapping(target = "email", source = "author.username")
     @Mapping(target = "phone", source = "author.phone")
     @Mapping(target = "image", expression = "java(getUrlToImage(advert))")
     FullAdsDto advertToFullAdsDto(Advert advert);
@@ -40,6 +40,9 @@ public interface AdvertMapper {
     }
 
     default String getUrlToImage(Advert advert) {
+        if (advert.getImage() == null) {
+            return null;
+        }
         return "/ads/" + advert.getId() + "/image";
     }
 }

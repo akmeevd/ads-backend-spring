@@ -53,7 +53,7 @@ public class UserController {
             @ApiResponse(responseCode = "401", content = {@Content(schema = @Schema())})}
     )
     public ResponseEntity<UserDto> updateInfo(Authentication auth, @RequestBody UserDto user) {
-        return ResponseEntity.ok(userService.updateInfo(auth, user));
+        return ResponseEntity.ok(userService.update(auth, user));
     }
 
     @PatchMapping(value = "/me/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -72,12 +72,14 @@ public class UserController {
     public void downloadAvatar(Authentication authentication,
                                HttpServletResponse response) throws IOException {
         Avatar avatar = userService.downloadAvatar(authentication);
-        Path path = avatar.getFilePath();
-        try (InputStream is = Files.newInputStream(path);
-             OutputStream os = response.getOutputStream();) {
-            response.setContentType(avatar.getFileType());
-            response.setContentLength((int) avatar.getFileSize());
-            is.transferTo(os);
+        if (avatar != null) {
+            Path path = avatar.getFilePath();
+            try (InputStream is = Files.newInputStream(path);
+                 OutputStream os = response.getOutputStream();) {
+                response.setContentType(avatar.getFileType());
+                response.setContentLength((int) avatar.getFileSize());
+                is.transferTo(os);
+            }
         }
     }
 
