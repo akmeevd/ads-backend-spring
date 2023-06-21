@@ -54,7 +54,7 @@ public class AdvertService {
         log.info("Creat advert with properties: " + properties);
         Image image = photoService.uploadImage(file);
         Advert advert = advertMapper.createAdsDtoToAdvert(properties);
-        advert.setAuthor(userRepository.findByEmail(auth.getName()));
+        advert.setAuthor(userRepository.findByUsername(auth.getName()));
         advert.setImage(image);
         return advertMapper.advertToAdsDto(advertRepository.save(advert));
     }
@@ -149,7 +149,7 @@ public class AdvertService {
      */
     public ResponseWrapperAdsDto findAllByAuthUser(Authentication auth) {
         log.info("Find adverts by user name");
-        User user = userRepository.findByEmail(auth.getName());
+        User user = userRepository.findByUsername(auth.getName());
         if (user == null) {
             throw new UserUnauthorizedException("user not found");
         }

@@ -52,7 +52,7 @@ public class CommentService {
         log.info("creating comment:" + commentDto.getText() + " for advert with id: " + advertId);
         Advert advert = advertRepository.findById(advertId)
                 .orElseThrow(() -> new AdvertNotFoundException("Advert not found"));
-        User user = userRepository.findByEmail(auth.getName());
+        User user = userRepository.findByUsername(auth.getName());
         Comment comment = commentMapper.commentDtoToComment(commentDto);
         comment.setCreatedAt(LocalDateTime.now());
         comment.setAuthor(user);

@@ -4,8 +4,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.JdbcUserDetailsManager;
-import org.springframework.security.provisioning.UserDetailsManager;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import ru.skypro.homework.dto.NewPasswordDto;
 import ru.skypro.homework.dto.RegisterReqDto;
@@ -25,7 +25,7 @@ import java.io.IOException;
  */
 @Service
 @Slf4j
-public class UserService{
+public class UserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final JdbcUserDetailsManager manager;
@@ -42,14 +42,37 @@ public class UserService{
     }
 
     /**
-     * Change user password
+     * Create user
      *
-     * @param auth        authorized user
-     * @param newPassword new password
+     * @param reqDto user data
+     * @param role   role
      */
-    public void setPassword(Authentication auth, NewPasswordDto newPassword) {
-        log.info("set new password");
-        manager.changePassword(newPassword.getCurrentPassword(), encoder.encode(newPassword.getNewPassword()));
+    @Transactional
+    public void create(RegisterReqDto reqDto, Role role) {
+        log.info("create new user");
+        User user = new User();
+        user.setUsername(reqDto.getUsername());
+        user.setPassword(encoder.encode(reqDto.getPassword()));
+        user.setRole(role);
+        user.setEnabled(true);
+        manager.createUser(user);
+        update(reqDto);
+    }
+
+    /**
+     * Update user info
+     *
+     * @param reqDto user data
+     */
+    @Transactional
+    public void update(RegisterReqDto reqDto) {
+        log.info("update user info");
+        User user = userRepository.findByUsername(reqDto.getUsername());
+        if (user == null) {
+            throw new UserUnauthorizedException("User not found");
+        }
+        userMapper.updateUser(reqDto, user);
+        userRepository.save(user);
     }
 
     /**
@@ -59,9 +82,10 @@ public class UserService{
      * @param userDto user DTO object
      * @return user DTO object
      */
-    public UserDto updateInfo(Authentication auth, UserDto userDto) {
+    @Transactional
+    public UserDto update(Authentication auth, UserDto userDto) {
         log.info("update user info: " + userDto);
-        User user = userRepository.findByEmail(auth.getName());
+        User user = userRepository.findByUsername(auth.getName());
         if (user == null) {
             throw new UserUnauthorizedException("User not found");
         }
@@ -71,14 +95,27 @@ public class UserService{
     }
 
     /**
+     * Change user password
+     *
+     * @param auth        authorized user
+     * @param newPassword new password
+     */
+    @Transactional
+    public void setPassword(Authentication auth, NewPasswordDto newPassword) {
+        log.info("set new password");
+        manager.changePassword(newPassword.getCurrentPassword(), encoder.encode(newPassword.getNewPassword()));
+    }
+
+    /**
      * Update user image
      *
      * @param auth  authorized user
      * @param image image
      */
+    @Transactional
     public byte[] updateAvatar(Authentication auth, MultipartFile image) throws IOException {
         log.info("update user image");
-        User user = userRepository.findByEmail(auth.getName());
+        User user = userRepository.findByUsername(auth.getName());
         photoService.uploadAvatar(user, image);
         return image.getBytes();
     }
@@ -91,7 +128,7 @@ public class UserService{
      */
     public Avatar downloadAvatar(Authentication authentication) {
         log.info("Download user image with email: " + authentication.getName());
-        User user = userRepository.findByEmail(authentication.getName());
+        User user = userRepository.findByUsername(authentication.getName());
         return user.getAvatar();
     }
 
@@ -115,25 +152,7 @@ public class UserService{
      * @return user DTO object
      */
     public UserDto findInfo(Authentication auth) {
-        User user = userRepository.findByEmail(auth.getName());
+        User user = userRepository.findByUsername(auth.getName());
         return userMapper.userToUserDto(user);
-    }
-
-    public void createUser(RegisterReqDto reqDto, Role role) {
-        User user = new User();
-        user.setEmail(reqDto.getUsername());
-        user.setPassword(encoder.encode(reqDto.getPassword()));
-        user.setRole(role);
-        manager.createUser(user);
-        updateUser(reqDto,role);
-    }
-
-    public void updateUser(RegisterReqDto reqDto, Role role) {
-        User user = userRepository.findByEmail(reqDto.getUsername());
-        user.setPhone(reqDto.getPhone());
-        user.setFirstName(reqDto.getFirstName());
-        user.setLastName(reqDto.getLastName());
-        user.setRole(role);
-        userRepository.save(user);
     }
 }

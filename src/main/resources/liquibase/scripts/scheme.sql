@@ -64,5 +64,10 @@ create table authorities(
     authority varchar(20)
 );
 
-
-
+-- changeSet 11th:4
+alter table users drop column email,
+                  drop column image,
+                  add column username varchar(50) unique,
+                  add column enabled bool,
+                  alter column first_name drop not null,
+                  alter column last_name drop not null;

@@ -15,13 +15,12 @@ import java.util.Set;
 @Setter
 @Entity
 @Table(name = "users")
-public class User implements UserDetails{
+public class User implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(nullable = false)
     private int id;
-    @Column(name = "username")
-    private String email;
+    private String username;
     private String password;
     private String firstName;
     private String lastName;
@@ -54,7 +53,12 @@ public class User implements UserDetails{
 
     @Override
     public String getUsername() {
-        return this.email;
+        return username;
+    }
+
+    @Override
+    public String getPassword() {
+        return password;
     }
 
     @Override
@@ -74,6 +78,6 @@ public class User implements UserDetails{
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return isEnabled;
     }
 }

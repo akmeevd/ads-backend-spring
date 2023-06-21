@@ -56,6 +56,9 @@ public interface CommentMapper {
     }
 
     default String getUrlToAvatar(Comment comment) {
+        if (comment.getAuthor().getAvatar() == null) {
+            return null;
+        }
         return "/users/" + comment.getAuthor().getId() + "/image";
     }
 }
