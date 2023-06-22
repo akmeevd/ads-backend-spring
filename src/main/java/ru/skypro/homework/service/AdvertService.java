@@ -5,10 +5,12 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import ru.skypro.homework.component.AuthenticationComponent;
 import ru.skypro.homework.dto.AdsDto;
 import ru.skypro.homework.dto.CreateAdsDto;
 import ru.skypro.homework.dto.FullAdsDto;
 import ru.skypro.homework.dto.ResponseWrapperAdsDto;
+import ru.skypro.homework.exception.ActionForbiddenException;
 import ru.skypro.homework.exception.AdvertNotFoundException;
 import ru.skypro.homework.exception.UserUnauthorizedException;
 import ru.skypro.homework.mapper.AdvertMapper;
@@ -20,6 +22,7 @@ import ru.skypro.homework.repository.UserRepository;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * service for maintain adverts via {@link AdvertRepository}
@@ -31,15 +34,18 @@ public class AdvertService {
     private final AdvertMapper advertMapper;
     private final UserRepository userRepository;
     private final PhotoService photoService;
+    private final AuthenticationComponent auth;
 
     public AdvertService(AdvertRepository advertRepository,
                          AdvertMapper advertMapper,
                          UserRepository userRepository,
-                         PhotoService photoService) {
+                         PhotoService photoService,
+                         AuthenticationComponent auth) {
         this.advertRepository = advertRepository;
         this.advertMapper = advertMapper;
         this.userRepository = userRepository;
         this.photoService = photoService;
+        this.auth = auth;
     }
 
     /**
@@ -67,8 +73,7 @@ public class AdvertService {
     @Transactional
     public void delete(int id) {
         log.info("Delete advert with id: " + id);
-        Advert advert = advertRepository.findById(id)
-                .orElseThrow(() -> new AdvertNotFoundException("Advert not found"));
+        Advert advert = findAdvertWithAuth(id);
         advertRepository.delete(advert);
     }
 
@@ -82,8 +87,7 @@ public class AdvertService {
     @Transactional
     public AdsDto update(int id, CreateAdsDto properties) {
         log.info("Update advert with id: " + id);
-        Advert advert = advertRepository.findById(id)
-                .orElseThrow(() -> new AdvertNotFoundException("Advert not found"));
+        Advert advert = findAdvertWithAuth(id);
         advertMapper.updateAdvert(properties, advert);
         advertRepository.save(advert);
         return advertMapper.advertToAdsDto(advert);
@@ -98,8 +102,7 @@ public class AdvertService {
     @Transactional
     public byte[] updateImage(int id, MultipartFile file) throws IOException {
         log.info("Update advert image with id: " + id);
-        Advert advert = advertRepository.findById(id)
-                .orElseThrow(() -> new AdvertNotFoundException("Advert not found"));
+        Advert advert = findAdvertWithAuth(id);
         photoService.uploadImage(advert, file);
         return file.getBytes();
     }
@@ -136,24 +139,41 @@ public class AdvertService {
      */
     public FullAdsDto findById(int id) {
         log.info("Find advert by id: " + id);
-        Advert advert = advertRepository.findById(id)
-                .orElseThrow(() -> new AdvertNotFoundException("Advert not found"));
+        Advert advert = findAdvert(id);
         return advertMapper.advertToFullAdsDto(advert);
     }
 
     /**
      * Find all adverts for authorized user via {@link AdvertRepository} and {@link UserRepository}
      *
-     * @param auth authorized user data
      * @return list of adverts
      */
-    public ResponseWrapperAdsDto findAllByAuthUser(Authentication auth) {
+    public ResponseWrapperAdsDto findAllByAuthUser() {
         log.info("Find adverts by user name");
-        User user = userRepository.findByUsername(auth.getName());
-        if (user == null) {
-            throw new UserUnauthorizedException("user not found");
-        }
-        List<Advert> adverts = advertRepository.findByAuthorId(user.getId());
+        List<Advert> adverts = findAdvertsWithAuth();
         return advertMapper.listToRespWrapperAdsDto(adverts);
+    }
+
+    private Advert findAdvert(int id) {
+        return advertRepository.findById(id).orElseThrow(() -> new AdvertNotFoundException("Advert not found"));
+    }
+
+    private Advert findAdvertWithAuth(int id) {
+        Optional<Advert> advert = advertRepository.findById(id);
+        if (!advert.isPresent()) {
+            throw new AdvertNotFoundException("Advert not found");
+        }
+        if (auth.check(advert.get().getAuthor().getUsername())) {
+            throw new ActionForbiddenException("Forbidden");
+        }
+        return advert.get();
+    }
+
+    private List<Advert> findAdvertsWithAuth() {
+        User user = userRepository.findByUsername(auth.getAuth().getName());
+        if (user == null) {
+            throw new UserUnauthorizedException("User not found");
+        }
+        return advertRepository.findByAuthorId(user.getId());
     }
 }

@@ -1,11 +1,11 @@
 ### Set new pass
 POST http://localhost:8080/users/set_password
-c
+Content-Type: application/json
 Authorization: Basic user@gmail.com password
 
 {
-  "newPassword": "new",
-  "currentPassword": "current"
+  "currentPassword": "password",
+  "newPassword": "password"
 }
 
 ### Update user info

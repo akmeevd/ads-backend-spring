@@ -8,7 +8,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import ru.skypro.homework.dto.NewPasswordDto;
@@ -41,8 +41,9 @@ public class UserController {
             @ApiResponse(responseCode = "401", content = {@Content(schema = @Schema())}),
             @ApiResponse(responseCode = "403", content = {@Content(schema = @Schema())})}
     )
-    public ResponseEntity<?> setPassword(Authentication auth, @RequestBody NewPasswordDto newPassword) {
-        userService.setPassword(auth, newPassword);
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN','ROLE_USER')")
+    public ResponseEntity<?> setPassword(@RequestBody NewPasswordDto newPassword) {
+        userService.setPassword(newPassword);
         return ResponseEntity.ok().build();
     }
 
@@ -52,8 +53,9 @@ public class UserController {
                     implementation = UserDto.class), mediaType = MediaType.APPLICATION_JSON_VALUE)}),
             @ApiResponse(responseCode = "401", content = {@Content(schema = @Schema())})}
     )
-    public ResponseEntity<UserDto> updateInfo(Authentication auth, @RequestBody UserDto user) {
-        return ResponseEntity.ok(userService.update(auth, user));
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN','ROLE_USER')")
+    public ResponseEntity<UserDto> updateInfo(@RequestBody UserDto user) {
+        return ResponseEntity.ok(userService.update(user));
     }
 
     @PatchMapping(value = "/me/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -61,17 +63,28 @@ public class UserController {
             @ApiResponse(responseCode = "200", content = {@Content(schema = @Schema())}),
             @ApiResponse(responseCode = "401", content = {@Content(schema = @Schema())})}
     )
-    public ResponseEntity<byte[]> updateAvatar(Authentication auth, @RequestParam("image") MultipartFile avatar) throws IOException {
-        return ResponseEntity.ok(userService.updateAvatar(auth, avatar));
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN','ROLE_USER')")
+    public ResponseEntity<byte[]> updateAvatar(@RequestParam("image") MultipartFile avatar) throws IOException {
+        return ResponseEntity.ok(userService.updateAvatar(avatar));
+    }
+
+    @GetMapping("/me")
+    @Operation(summary = "Получить информацию об авторизованном пользователе", responses = {
+            @ApiResponse(responseCode = "200", content = {@Content(schema = @Schema(
+                    implementation = UserDto.class), mediaType = MediaType.APPLICATION_JSON_VALUE)}),
+            @ApiResponse(responseCode = "401", content = {@Content(schema = @Schema())})}
+    )
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN','ROLE_USER')")
+    public ResponseEntity<UserDto> findInfo() {
+        return ResponseEntity.ok(userService.findInfo());
     }
 
     @GetMapping("/me/image")
     @Operation(summary = "Скачать аватар авторизованного пользователя", responses = {
             @ApiResponse(responseCode = "200", content = {@Content(schema = @Schema())})}
     )
-    public void downloadAvatar(Authentication authentication,
-                               HttpServletResponse response) throws IOException {
-        Avatar avatar = userService.downloadAvatar(authentication);
+    public void downloadAvatar(HttpServletResponse response) throws IOException {
+        Avatar avatar = userService.downloadAvatar();
         if (avatar != null) {
             Path path = avatar.getFilePath();
             try (InputStream is = Files.newInputStream(path);
@@ -97,15 +110,5 @@ public class UserController {
             response.setContentLength((int) avatar.getFileSize());
             is.transferTo(os);
         }
-    }
-
-    @GetMapping("/me")
-    @Operation(summary = "Получить информацию об авторизованном пользователе", responses = {
-            @ApiResponse(responseCode = "200", content = {@Content(schema = @Schema(
-                    implementation = UserDto.class), mediaType = MediaType.APPLICATION_JSON_VALUE)}),
-            @ApiResponse(responseCode = "401", content = {@Content(schema = @Schema())})}
-    )
-    public ResponseEntity<UserDto> findInfo(Authentication auth) {
-        return ResponseEntity.ok(userService.findInfo(auth));
     }
 }
