@@ -1,4 +1,4 @@
-package ru.skypro.homework.dto;
+package ru.skypro.homework.model;
 
 import org.springframework.security.core.GrantedAuthority;
 

@@ -9,7 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import ru.skypro.homework.dto.CommentDto;
 import ru.skypro.homework.dto.ResponseWrapperCommentDto;
@@ -33,10 +33,10 @@ public class CommentController {
                     implementation = CommentDto.class), mediaType = MediaType.APPLICATION_JSON_VALUE)}),
             @ApiResponse(responseCode = "401", content = {@Content(schema = @Schema())})}
     )
-    public ResponseEntity<CommentDto> create(Authentication auth,
-                                             @PathVariable("id") Integer id,
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN','ROLE_USER')")
+    public ResponseEntity<CommentDto> create(@PathVariable("id") Integer id,
                                              @RequestBody CommentDto text) {
-        return new ResponseEntity<>(commentService.create(auth, id, text), HttpStatus.CREATED);
+        return new ResponseEntity<>(commentService.create(id, text), HttpStatus.CREATED);
     }
 
     @DeleteMapping("/{adId}/comments/{commentId}")
@@ -45,6 +45,7 @@ public class CommentController {
             @ApiResponse(responseCode = "401", content = {@Content(schema = @Schema())}),
             @ApiResponse(responseCode = "403", content = {@Content(schema = @Schema())})}
     )
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN','ROLE_USER')")
     public ResponseEntity<?> delete(@PathVariable("adId") Integer adId,
                                     @PathVariable("commentId") Integer commentId) {
         commentService.delete(adId, commentId);
@@ -58,6 +59,7 @@ public class CommentController {
             @ApiResponse(responseCode = "401", content = {@Content(schema = @Schema())}),
             @ApiResponse(responseCode = "403", content = {@Content(schema = @Schema())})}
     )
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN','ROLE_USER')")
     public ResponseEntity<CommentDto> update(@PathVariable("adId") Integer adId,
                                              @PathVariable("commentId") Integer commentId,
                                              @RequestBody CommentDto comment) {
@@ -70,6 +72,7 @@ public class CommentController {
                     implementation = ResponseWrapperCommentDto.class), mediaType = MediaType.APPLICATION_JSON_VALUE)}),
             @ApiResponse(responseCode = "401", content = {@Content(schema = @Schema())})}
     )
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN','ROLE_USER')")
     public ResponseEntity<ResponseWrapperCommentDto> findAllByAdvert(@PathVariable("id") Integer id) {
         return ResponseEntity.ok(commentService.findAll(id));
     }

@@ -21,10 +21,12 @@ Content-Type: image/jpeg
 
 ### Delete advert
 DELETE http://localhost:8080/ads/1
+Authorization: Basic user@gmail.com password
 
 ### Update advert
 PATCH http://localhost:8080/ads/1
 Content-Type: application/json
+Authorization: Basic user@gmail.com password
 
 {
   "title": "title",
@@ -37,6 +39,7 @@ GET http://localhost:8080/ads
 
 ### Find advert by Id
 GET http://localhost:8080/ads/1
+Authorization: Basic user@gmail.com password
 
 ### Find adverts for user
 GET http://localhost:8080/ads/me
