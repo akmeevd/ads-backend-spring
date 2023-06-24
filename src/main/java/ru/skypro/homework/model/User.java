@@ -5,8 +5,10 @@ import lombok.Setter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+
 import javax.persistence.*;
 import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
@@ -31,6 +33,9 @@ public class User implements UserDetails {
     private Role role;
     @Column(name = "enabled")
     private boolean isEnabled;
+
+    @OneToMany(mappedBy = "author", cascade = CascadeType.REMOVE)
+    private Set<Advert> adverts;
 
     @Override
     public boolean equals(Object o) {
