@@ -42,7 +42,6 @@ public class AdvertController {
                     implementation = AdsDto.class), mediaType = MediaType.APPLICATION_JSON_VALUE)}),
             @ApiResponse(responseCode = "401", content = {@Content(schema = @Schema())})}
     )
-    @PreAuthorize("hasAnyRole('ROLE_ADMIN','ROLE_USER')")
     public ResponseEntity<AdsDto> create(Authentication auth,
                                          @RequestPart CreateAdsDto properties,
                                          @RequestPart(name = "image") MultipartFile file) {
@@ -55,9 +54,8 @@ public class AdvertController {
             @ApiResponse(responseCode = "401", content = {@Content(schema = @Schema())}),
             @ApiResponse(responseCode = "403", content = {@Content(schema = @Schema())})}
     )
-    @PreAuthorize("hasAnyRole('ROLE_ADMIN','ROLE_USER')")
-    public ResponseEntity<?> delete(@PathVariable("id") Integer id) {
-        advertService.delete(id);
+    public ResponseEntity<?> delete(@PathVariable("id") Integer id, Authentication authentication) {
+        advertService.delete(id, authentication);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
@@ -68,7 +66,6 @@ public class AdvertController {
             @ApiResponse(responseCode = "401", content = {@Content(schema = @Schema())}),
             @ApiResponse(responseCode = "403", content = {@Content(schema = @Schema())})}
     )
-    @PreAuthorize("hasAnyRole('ROLE_ADMIN','ROLE_USER')")
     public ResponseEntity<AdsDto> update(@PathVariable("id") Integer id,
                                          @RequestBody CreateAdsDto advert) {
         return ResponseEntity.ok(advertService.update(id, advert));
@@ -81,7 +78,6 @@ public class AdvertController {
             @ApiResponse(responseCode = "401", content = {@Content(schema = @Schema())}),
             @ApiResponse(responseCode = "403", content = {@Content(schema = @Schema())})}
     )
-    @PreAuthorize("hasAnyRole('ROLE_ADMIN','ROLE_USER')")
     public ResponseEntity<byte[]> updateImage(@PathVariable("id") Integer id,
                                               @RequestParam("image") MultipartFile file) throws IOException {
         return ResponseEntity.ok(advertService.updateImage(id, file));
@@ -93,7 +89,6 @@ public class AdvertController {
                     implementation = FullAdsDto.class), mediaType = MediaType.APPLICATION_JSON_VALUE)}),
             @ApiResponse(responseCode = "401", content = {@Content(schema = @Schema())})}
     )
-    @PreAuthorize("hasAnyRole('ROLE_ADMIN','ROLE_USER')")
     public ResponseEntity<FullAdsDto> findById(@PathVariable("id") Integer id) {
         return ResponseEntity.ok(advertService.findById(id));
     }
@@ -104,7 +99,6 @@ public class AdvertController {
                     implementation = ResponseWrapperAdsDto.class), mediaType = MediaType.APPLICATION_JSON_VALUE)}),
             @ApiResponse(responseCode = "401", content = {@Content(schema = @Schema())})}
     )
-    @PreAuthorize("hasAnyRole('ROLE_ADMIN','ROLE_USER')")
     public ResponseEntity<ResponseWrapperAdsDto> findAllByAuthUser() {
         ResponseWrapperAdsDto responseWrapperAdsDto = advertService.findAllByAuthUser();
         return ResponseEntity.ok(responseWrapperAdsDto);
@@ -134,4 +128,5 @@ public class AdvertController {
             is.transferTo(os);
         }
     }
+
 }

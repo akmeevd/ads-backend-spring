@@ -17,7 +17,9 @@ public class AuthenticationComponent implements IAuthenticationFacade {
             return true;
         } else if (checkAdminRole()) {
             return false;
-        } else return !checkUsername(username);
+        } else {
+            return !checkUsername(username);
+        }
     }
 
     public boolean checkAdminRole() {

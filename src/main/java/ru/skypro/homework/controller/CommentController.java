@@ -33,7 +33,6 @@ public class CommentController {
                     implementation = CommentDto.class), mediaType = MediaType.APPLICATION_JSON_VALUE)}),
             @ApiResponse(responseCode = "401", content = {@Content(schema = @Schema())})}
     )
-    @PreAuthorize("hasAnyRole('ROLE_ADMIN','ROLE_USER')")
     public ResponseEntity<CommentDto> create(@PathVariable("id") Integer id,
                                              @RequestBody CommentDto text) {
         return new ResponseEntity<>(commentService.create(id, text), HttpStatus.CREATED);
@@ -45,7 +44,6 @@ public class CommentController {
             @ApiResponse(responseCode = "401", content = {@Content(schema = @Schema())}),
             @ApiResponse(responseCode = "403", content = {@Content(schema = @Schema())})}
     )
-    @PreAuthorize("hasAnyRole('ROLE_ADMIN','ROLE_USER')")
     public ResponseEntity<?> delete(@PathVariable("adId") Integer adId,
                                     @PathVariable("commentId") Integer commentId) {
         commentService.delete(adId, commentId);
@@ -59,7 +57,6 @@ public class CommentController {
             @ApiResponse(responseCode = "401", content = {@Content(schema = @Schema())}),
             @ApiResponse(responseCode = "403", content = {@Content(schema = @Schema())})}
     )
-    @PreAuthorize("hasAnyRole('ROLE_ADMIN','ROLE_USER')")
     public ResponseEntity<CommentDto> update(@PathVariable("adId") Integer adId,
                                              @PathVariable("commentId") Integer commentId,
                                              @RequestBody CommentDto comment) {
@@ -72,7 +69,6 @@ public class CommentController {
                     implementation = ResponseWrapperCommentDto.class), mediaType = MediaType.APPLICATION_JSON_VALUE)}),
             @ApiResponse(responseCode = "401", content = {@Content(schema = @Schema())})}
     )
-    @PreAuthorize("hasAnyRole('ROLE_ADMIN','ROLE_USER')")
     public ResponseEntity<ResponseWrapperCommentDto> findAllByAdvert(@PathVariable("id") Integer id) {
         return ResponseEntity.ok(commentService.findAll(id));
     }
