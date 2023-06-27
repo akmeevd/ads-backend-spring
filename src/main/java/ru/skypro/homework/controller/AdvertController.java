@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -82,31 +83,6 @@ public class AdvertController {
         return ResponseEntity.ok(advertService.updateImage(id, file));
     }
 
-    @GetMapping("/{id}/image")
-    @Operation(summary = "Скачать картинку объявления", responses = {
-            @ApiResponse(responseCode = "200", content = {@Content(schema = @Schema())})}
-    )
-    public void downloadImage(@PathVariable("id") Integer id,
-                              HttpServletResponse response) throws IOException {
-        Image image = advertService.downloadImage(id);
-        Path path = image.getFilePath();
-        try (InputStream is = Files.newInputStream(path);
-             OutputStream os = response.getOutputStream();) {
-            response.setContentType(image.getFileType());
-            response.setContentLength((int) image.getFileSize());
-            is.transferTo(os);
-        }
-    }
-
-    @GetMapping
-    @Operation(summary = "Получить все объявления", responses = {
-            @ApiResponse(responseCode = "200", content = {@Content(schema = @Schema(
-                    implementation = ResponseWrapperAdsDto.class), mediaType = MediaType.APPLICATION_JSON_VALUE)})}
-    )
-    public ResponseEntity<ResponseWrapperAdsDto> findAll() {
-        return ResponseEntity.ok(advertService.findAll());
-    }
-
     @GetMapping("/{id}")
     @Operation(summary = "Получить информацию об объявлении", responses = {
             @ApiResponse(responseCode = "200", content = {@Content(schema = @Schema(
@@ -123,8 +99,34 @@ public class AdvertController {
                     implementation = ResponseWrapperAdsDto.class), mediaType = MediaType.APPLICATION_JSON_VALUE)}),
             @ApiResponse(responseCode = "401", content = {@Content(schema = @Schema())})}
     )
-    public ResponseEntity<ResponseWrapperAdsDto> findAllByAuthUser(Authentication auth) {
-        ResponseWrapperAdsDto responseWrapperAdsDto = advertService.findAllByAuthUser(auth);
+    public ResponseEntity<ResponseWrapperAdsDto> findAllByAuthUser() {
+        ResponseWrapperAdsDto responseWrapperAdsDto = advertService.findAllByAuthUser();
         return ResponseEntity.ok(responseWrapperAdsDto);
     }
+
+    @GetMapping
+    @Operation(summary = "Получить все объявления", responses = {
+            @ApiResponse(responseCode = "200", content = {@Content(schema = @Schema(
+                    implementation = ResponseWrapperAdsDto.class), mediaType = MediaType.APPLICATION_JSON_VALUE)})}
+    )
+    public ResponseEntity<ResponseWrapperAdsDto> findAll() {
+        return ResponseEntity.ok(advertService.findAll());
+    }
+
+    @GetMapping("/{id}/image")
+    @Operation(summary = "Скачать картинку объявления", responses = {
+            @ApiResponse(responseCode = "200", content = {@Content(schema = @Schema())})}
+    )
+    public void downloadImage(@PathVariable("id") Integer id,
+                              HttpServletResponse response) throws IOException {
+        Image image = advertService.downloadImage(id);
+        Path path = image.getFilePath();
+        try (InputStream is = Files.newInputStream(path);
+             OutputStream os = response.getOutputStream();) {
+            response.setContentType(image.getFileType());
+            response.setContentLength((int) image.getFileSize());
+            is.transferTo(os);
+        }
+    }
+
 }

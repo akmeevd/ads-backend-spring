@@ -1,0 +1,21 @@
+### Register
+POST http://localhost:8080/register
+Content-Type: application/json
+
+{
+  "username": "user@gmail.com",
+  "password": "password",
+  "firstName": "user",
+  "lastName": "user",
+  "phone": "+79511338888",
+  "role": "USER"
+}
+
+### Login
+POST http://localhost:8080/login
+Content-Type: application/json
+
+{
+  "password": "user@gmail.com",
+  "username": "password"
+}

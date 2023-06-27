@@ -57,3 +57,17 @@ alter table adverts add column image_id integer references photos(id);
 
 --changeSet akmeevd:2
 alter table users add column avatar_id integer references photos (id);
+
+--changeSet akmeevd:3
+create table authorities(
+    username varchar(100),
+    authority varchar(20)
+);
+
+-- changeSet 11th:4
+alter table users drop column email,
+                  drop column image,
+                  add column username varchar(50) unique,
+                  add column enabled bool,
+                  alter column first_name drop not null,
+                  alter column last_name drop not null;

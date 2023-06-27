@@ -1,12 +1,15 @@
 package ru.skypro.homework.service;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.provisioning.UserDetailsManager;
+import org.springframework.security.provisioning.JdbcUserDetailsManager;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import ru.skypro.homework.component.AuthenticationComponent;
 import ru.skypro.homework.dto.NewPasswordDto;
+import ru.skypro.homework.dto.RegisterReqDto;
+import ru.skypro.homework.model.Role;
 import ru.skypro.homework.dto.UserDto;
 import ru.skypro.homework.exception.UserNotFoundException;
 import ru.skypro.homework.exception.UserUnauthorizedException;
@@ -14,6 +17,8 @@ import ru.skypro.homework.mapper.UserMapper;
 import ru.skypro.homework.model.Avatar;
 import ru.skypro.homework.model.User;
 import ru.skypro.homework.repository.UserRepository;
+import ru.skypro.homework.dto.SecuringUserDto;
+import ru.skypro.homework.security.UserDetailsImpl;
 
 import java.io.IOException;
 
@@ -25,40 +30,68 @@ import java.io.IOException;
 public class UserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
-    private final UserDetailsManager manager;
+    private final JdbcUserDetailsManager manager;
     private final PasswordEncoder encoder;
     private final PhotoService photoService;
+    private final AuthenticationComponent auth;
 
-    public UserService(UserRepository userRepository, UserMapper userMapper,
-                       UserDetailsManager manager, PasswordEncoder encoder, PhotoService photoService) {
+    public UserService(UserRepository userRepository,
+                       UserMapper userMapper,
+                       JdbcUserDetailsManager manager,
+                       PasswordEncoder encoder,
+                       PhotoService photoService,
+                       AuthenticationComponent auth) {
         this.userRepository = userRepository;
         this.userMapper = userMapper;
         this.manager = manager;
         this.encoder = encoder;
         this.photoService = photoService;
+        this.auth = auth;
     }
 
     /**
-     * Change user password
+     * Create user
      *
-     * @param auth        authorized user
-     * @param newPassword new password
+     * @param reqDto user data
+     * @param role   role
      */
-    public void setPassword(Authentication auth, NewPasswordDto newPassword) {
-        log.info("set new password");
-        manager.changePassword(newPassword.getCurrentPassword(), encoder.encode(newPassword.getNewPassword()));
+    @Transactional
+    public void create(RegisterReqDto reqDto, Role role) {
+        log.info("create new user");
+        SecuringUserDto securingUserDto = new SecuringUserDto(reqDto.getUsername(),
+                encoder.encode(reqDto.getPassword()), role, true);
+        UserDetailsImpl userDetails = new UserDetailsImpl(securingUserDto);
+        manager.createUser(userDetails);
+        update(reqDto, role);
+    }
+
+    /**
+     * Update user info
+     *
+     * @param reqDto user data
+     */
+    @Transactional
+    public void update(RegisterReqDto reqDto, Role role) {
+        log.info("update user info");
+        User user = userRepository.findByUsername(auth.getAuth().getName());
+        if (user == null) {
+            throw new UserUnauthorizedException("User not found");
+        }
+        userMapper.updateUser(reqDto, user);
+        user.setRole(role);
+        userRepository.save(user);
     }
 
     /**
      * Update user info via {@link UserRepository}
      *
-     * @param auth    authorized user
      * @param userDto user DTO object
      * @return user DTO object
      */
-    public UserDto updateInfo(Authentication auth, UserDto userDto) {
+    @Transactional
+    public UserDto update(UserDto userDto) {
         log.info("update user info: " + userDto);
-        User user = userRepository.findByEmail(auth.getName());
+        User user = userRepository.findByUsername(auth.getAuth().getName());
         if (user == null) {
             throw new UserUnauthorizedException("User not found");
         }
@@ -68,14 +101,25 @@ public class UserService {
     }
 
     /**
+     * Change user password
+     *
+     * @param newPassword new password
+     */
+    @Transactional
+    public void setPassword(NewPasswordDto newPassword) {
+        log.info("set new password");
+        manager.changePassword(newPassword.getCurrentPassword(), encoder.encode(newPassword.getNewPassword()));
+    }
+
+    /**
      * Update user image
      *
-     * @param auth  authorized user
      * @param image image
      */
-    public byte[] updateAvatar(Authentication auth, MultipartFile image) throws IOException {
+    @Transactional
+    public byte[] updateAvatar(MultipartFile image) throws IOException {
         log.info("update user image");
-        User user = userRepository.findByEmail(auth.getName());
+        User user = userRepository.findByUsername(auth.getAuth().getName());
         photoService.uploadAvatar(user, image);
         return image.getBytes();
     }
@@ -83,12 +127,11 @@ public class UserService {
     /**
      * Download avatar authorized user
      *
-     * @param authentication auth data
      * @return avatar object
      */
-    public Avatar downloadAvatar(Authentication authentication) {
-        log.info("Download user image with email: " + authentication.getName());
-        User user = userRepository.findByEmail(authentication.getName());
+    public Avatar downloadAvatar() {
+        log.info("Download user image with email: " + auth.getAuth().getName());
+        User user = userRepository.findByUsername(auth.getAuth().getName());
         return user.getAvatar();
     }
 
@@ -108,11 +151,10 @@ public class UserService {
     /**
      * Get user info via {@link UserRepository}
      *
-     * @param auth authorized user
      * @return user DTO object
      */
-    public UserDto findInfo(Authentication auth) {
-        User user = userRepository.findByEmail(auth.getName());
+    public UserDto findInfo() {
+        User user = userRepository.findByUsername(auth.getAuth().getName());
         return userMapper.userToUserDto(user);
     }
 }
