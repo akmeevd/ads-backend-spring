@@ -176,4 +176,12 @@ public class AdvertService {
         }
         return advertRepository.findByAuthorId(user.getId());
     }
+
+    public void deleteByAdmin(int id, Authentication authentication) {
+        User user = userRepository.findByUsername(authentication.getName());
+        if (user.getRole().getAuthority().equals("ROLE_ADMIN")) {
+            Optional<Advert> advert = advertRepository.findById(id);
+            advertRepository.delete(advert.get());
+        }
+    }
 }

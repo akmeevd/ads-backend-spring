@@ -17,8 +17,8 @@ import ru.skypro.homework.mapper.UserMapper;
 import ru.skypro.homework.model.Avatar;
 import ru.skypro.homework.model.User;
 import ru.skypro.homework.repository.UserRepository;
-import ru.skypro.homework.securing_dto.SecuringUserDto;
-import ru.skypro.homework.security.MyUserDetails;
+import ru.skypro.homework.dto.SecuringUserDto;
+import ru.skypro.homework.security.UserDetailsImpl;
 
 import java.io.IOException;
 
@@ -60,8 +60,8 @@ public class UserService {
         log.info("create new user");
         SecuringUserDto securingUserDto = new SecuringUserDto(reqDto.getUsername(),
                 encoder.encode(reqDto.getPassword()), role, true);
-        MyUserDetails myUserDetails = new MyUserDetails(securingUserDto);
-        manager.createUser(myUserDetails);
+        UserDetailsImpl userDetails = new UserDetailsImpl(securingUserDto);
+        manager.createUser(userDetails);
         update(reqDto, role);
     }
 

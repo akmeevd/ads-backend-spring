@@ -5,14 +5,14 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import ru.skypro.homework.securing_dto.SecuringUserDto;
+import ru.skypro.homework.dto.SecuringUserDto;
 
 import java.util.Collection;
 import java.util.Set;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class MyUserDetails implements UserDetails {
+public class UserDetailsImpl implements UserDetails {
     private SecuringUserDto user;
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

@@ -54,8 +54,8 @@ public class AdvertController {
             @ApiResponse(responseCode = "401", content = {@Content(schema = @Schema())}),
             @ApiResponse(responseCode = "403", content = {@Content(schema = @Schema())})}
     )
-    public ResponseEntity<?> delete(@PathVariable("id") Integer id, Authentication authentication) {
-        advertService.delete(id, authentication);
+    public ResponseEntity<?> delete(@PathVariable("id") Integer id) {
+        advertService.delete(id);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
