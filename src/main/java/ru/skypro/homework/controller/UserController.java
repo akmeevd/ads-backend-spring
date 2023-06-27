@@ -17,6 +17,7 @@ import ru.skypro.homework.model.Avatar;
 import ru.skypro.homework.service.UserService;
 
 import javax.servlet.http.HttpServletResponse;
+import javax.sql.DataSource;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -41,7 +42,6 @@ public class UserController {
             @ApiResponse(responseCode = "401", content = {@Content(schema = @Schema())}),
             @ApiResponse(responseCode = "403", content = {@Content(schema = @Schema())})}
     )
-    @PreAuthorize("hasAnyRole('ROLE_ADMIN','ROLE_USER')")
     public ResponseEntity<?> setPassword(@RequestBody NewPasswordDto newPassword) {
         userService.setPassword(newPassword);
         return ResponseEntity.ok().build();
@@ -53,7 +53,6 @@ public class UserController {
                     implementation = UserDto.class), mediaType = MediaType.APPLICATION_JSON_VALUE)}),
             @ApiResponse(responseCode = "401", content = {@Content(schema = @Schema())})}
     )
-    @PreAuthorize("hasAnyRole('ROLE_ADMIN','ROLE_USER')")
     public ResponseEntity<UserDto> updateInfo(@RequestBody UserDto user) {
         return ResponseEntity.ok(userService.update(user));
     }
@@ -63,7 +62,6 @@ public class UserController {
             @ApiResponse(responseCode = "200", content = {@Content(schema = @Schema())}),
             @ApiResponse(responseCode = "401", content = {@Content(schema = @Schema())})}
     )
-    @PreAuthorize("hasAnyRole('ROLE_ADMIN','ROLE_USER')")
     public ResponseEntity<byte[]> updateAvatar(@RequestParam("image") MultipartFile avatar) throws IOException {
         return ResponseEntity.ok(userService.updateAvatar(avatar));
     }
@@ -74,7 +72,6 @@ public class UserController {
                     implementation = UserDto.class), mediaType = MediaType.APPLICATION_JSON_VALUE)}),
             @ApiResponse(responseCode = "401", content = {@Content(schema = @Schema())})}
     )
-    @PreAuthorize("hasAnyRole('ROLE_ADMIN','ROLE_USER')")
     public ResponseEntity<UserDto> findInfo() {
         return ResponseEntity.ok(userService.findInfo());
     }
