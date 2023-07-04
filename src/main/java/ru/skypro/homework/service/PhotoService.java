@@ -13,6 +13,7 @@ import ru.skypro.homework.repository.UserRepository;
 
 import java.io.*;
 import java.nio.file.Files;
+import java.nio.file.OpenOption;
 import java.nio.file.Path;
 
 @Service
@@ -63,6 +64,7 @@ public class PhotoService {
         log.info("upload advert image");
         try {
             Image image = advert.getImage();
+            deletePreviousImageInDirectory(image);
             mapFileToPhoto(file, image);
             image = photoRepository.save(image);
             upload(image, file);
@@ -79,13 +81,14 @@ public class PhotoService {
      * @return photo object
      */
     @Transactional
-    public Photo uploadAvatar(User user, MultipartFile file) {
+    public Avatar uploadAvatar(User user, MultipartFile file) {
         log.info("upload user avatar");
         try {
             Avatar avatar = new Avatar(avatarsDir);
             mapFileToPhoto(file, avatar);
-            photoRepository.save(avatar);
+            avatar = photoRepository.save(avatar);
             upload(avatar, file);
+            deletePreviousAvatarInDirectory(user.getAvatar());
             user.setAvatar(avatar);
             userRepository.save(user);
             return avatar;
@@ -106,5 +109,17 @@ public class PhotoService {
         photo.setFileName(file.getOriginalFilename());
         photo.setFileExtension(StringUtils.getFilenameExtension(file.getOriginalFilename()));
         photo.setFileSize(file.getSize());
+    }
+
+    private void deletePreviousImageInDirectory(Image image) throws IOException {
+        if (image != null) {
+            Files.delete(image.getFilePath().toAbsolutePath().toFile().toPath());
+        }
+    }
+
+    private void deletePreviousAvatarInDirectory(Avatar avatar) throws IOException {
+        if (avatar != null) {
+            Files.delete(avatar.getFilePath().toAbsolutePath().toFile().toPath());
+        }
     }
 }

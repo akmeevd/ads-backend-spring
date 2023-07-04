@@ -2,6 +2,7 @@ package ru.skypro.homework.model;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 import javax.persistence.*;
 import java.util.List;
@@ -9,6 +10,7 @@ import java.util.Objects;
 
 @Getter
 @Setter
+@ToString
 @Entity
 @Table(name = "adverts")
 public class Advert {
