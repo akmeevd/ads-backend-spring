@@ -64,7 +64,7 @@ public class PhotoService {
         log.info("upload advert image");
         try {
             Image image = advert.getImage();
-            deletePreviousImageInDirectory(image);
+            deletePreviousPhotoInDirectory(image);
             mapFileToPhoto(file, image);
             image = photoRepository.save(image);
             upload(image, file);
@@ -88,7 +88,7 @@ public class PhotoService {
             mapFileToPhoto(file, avatar);
             avatar = photoRepository.save(avatar);
             upload(avatar, file);
-            deletePreviousAvatarInDirectory(user.getAvatar());
+            deletePreviousPhotoInDirectory(user.getAvatar());
             user.setAvatar(avatar);
             userRepository.save(user);
             return avatar;
@@ -111,15 +111,11 @@ public class PhotoService {
         photo.setFileSize(file.getSize());
     }
 
-    private void deletePreviousImageInDirectory(Image image) throws IOException {
-        if (image != null) {
-            Files.delete(image.getFilePath().toAbsolutePath().toFile().toPath());
-        }
+    private void deletePreviousPhotoInDirectory(Photo photo) throws IOException {
+        Files.deleteIfExists(photo.getFilePath().toAbsolutePath().toFile().toPath());
+//        if (photo != null) {
+//            Files.delete(photo.getFilePath().toAbsolutePath().toFile().toPath());
+//        }
     }
 
-    private void deletePreviousAvatarInDirectory(Avatar avatar) throws IOException {
-        if (avatar != null) {
-            Files.delete(avatar.getFilePath().toAbsolutePath().toFile().toPath());
-        }
-    }
 }
