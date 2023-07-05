@@ -16,6 +16,7 @@ public interface UserMapper {
 
     @Mapping(target = "username", ignore = true)
     @Mapping(target = "password", ignore = true)
+    @Mapping(target = "id", expression = "java(user.getId())")
     void updateUser(UserDto userDto, @MappingTarget User user);
 
     @Mapping(target = "username", ignore = true)
