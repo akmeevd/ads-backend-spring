@@ -113,9 +113,5 @@ public class PhotoService {
 
     private void deletePreviousPhotoInDirectory(Photo photo) throws IOException {
         Files.deleteIfExists(photo.getFilePath().toAbsolutePath().toFile().toPath());
-//        if (photo != null) {
-//            Files.delete(photo.getFilePath().toAbsolutePath().toFile().toPath());
-//        }
     }
-
 }
