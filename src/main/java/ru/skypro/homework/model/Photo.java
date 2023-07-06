@@ -2,6 +2,7 @@ package ru.skypro.homework.model;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 import javax.persistence.*;
 import java.nio.file.Path;
@@ -9,6 +10,7 @@ import java.util.Objects;
 
 @Getter
 @Setter
+@ToString
 @Entity(name="photos")
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name="photo_type", discriminatorType = DiscriminatorType.STRING)

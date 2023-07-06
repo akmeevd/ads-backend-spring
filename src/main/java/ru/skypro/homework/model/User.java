@@ -2,6 +2,7 @@ package ru.skypro.homework.model;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -16,6 +17,7 @@ import java.util.Set;
 @Setter
 @Entity
 @Table(name = "users")
+@ToString
 public class User{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
