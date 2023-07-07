@@ -74,7 +74,9 @@ public class AdvertService {
     public void delete(int id) {
         log.info("Delete advert with id: " + id);
         Advert advert = findAdvertWithAuth(id);
+        Image image = advert.getImage();
         advertRepository.delete(advert);
+        photoService.deleteFile(image);
     }
 
     /**

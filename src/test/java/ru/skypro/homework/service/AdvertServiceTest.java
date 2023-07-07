@@ -6,6 +6,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.core.Authentication;
 import ru.skypro.homework.component.AuthenticationComponent;
@@ -27,6 +30,7 @@ import ru.skypro.homework.repository.UserRepository;
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
@@ -56,7 +60,7 @@ public class AdvertServiceTest {
 
 
     @BeforeEach
-    public void setup() {
+    public void setup() throws IOException {
         User user = new User();
         user.setId(1);
         user.setRole(Role.ADMIN);
@@ -64,17 +68,13 @@ public class AdvertServiceTest {
         advert.setId(1);
         advert.setAuthor(user);
         advert.setImage(new Image());
-        Path path = Path.of("src", "test\\resources\\picture\\images.jpeg");
-        File file = new File(path.toUri());
-        try {
-            InputStream is = new FileInputStream(file);
-            byte[] bytes = is.readAllBytes();
-            is.close();
-            mockMultipartFile = new MockMultipartFile("picture",
-                    "images.jpeg", "image/jpeg", bytes);
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
-        }
+        Resource resource = new ClassPathResource("picture/images.jpeg");
+        mockMultipartFile = new MockMultipartFile(
+                "image",
+                "image.jpeg",
+                MediaType.IMAGE_JPEG_VALUE,
+                Files.readAllBytes(resource.getFile().toPath())
+        );
     }
 
     @Test

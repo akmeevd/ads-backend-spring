@@ -13,7 +13,6 @@ import ru.skypro.homework.repository.UserRepository;
 
 import java.io.*;
 import java.nio.file.Files;
-import java.nio.file.OpenOption;
 import java.nio.file.Path;
 
 @Service
@@ -64,7 +63,6 @@ public class PhotoService {
         log.info("upload advert image");
         try {
             Image image = advert.getImage();
-            deletePreviousPhotoInDirectory(image);
             mapFileToPhoto(file, image);
             image = photoRepository.save(image);
             upload(image, file);
@@ -84,16 +82,35 @@ public class PhotoService {
     public Avatar uploadAvatar(User user, MultipartFile file) {
         log.info("upload user avatar");
         try {
-            Avatar avatar = new Avatar(avatarsDir);
+            Avatar avatar = user.getAvatar();
+            if (avatar == null) {
+                avatar = new Avatar(avatarsDir);
+            }
             mapFileToPhoto(file, avatar);
             avatar = photoRepository.save(avatar);
             upload(avatar, file);
-            deletePreviousPhotoInDirectory(user.getAvatar());
             user.setAvatar(avatar);
             userRepository.save(user);
             return avatar;
         } catch (Exception e) {
             throw new PhotoUploadException(e.getMessage());
+        }
+    }
+
+    /**
+     * Delete photo from file system
+     *
+     * @param photo photo
+     */
+    @Transactional
+    public void deleteFile(Photo photo) {
+        if (photo != null) {
+            try {
+                log.info("delete photo id " + photo.getId());
+                Files.deleteIfExists(photo.getFilePath().toAbsolutePath().toFile().toPath());
+            } catch (IOException exception) {
+                throw new PhotoUploadException(exception.getMessage());
+            }
         }
     }
 
@@ -109,11 +126,5 @@ public class PhotoService {
         photo.setFileName(file.getOriginalFilename());
         photo.setFileExtension(StringUtils.getFilenameExtension(file.getOriginalFilename()));
         photo.setFileSize(file.getSize());
-    }
-
-    private void deletePreviousPhotoInDirectory(Photo photo) throws IOException {
-        if (photo != null) {
-            Files.deleteIfExists(photo.getFilePath().toAbsolutePath().toFile().toPath());
-        }
     }
 }

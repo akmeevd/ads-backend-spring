@@ -24,7 +24,7 @@ public class Advert {
     @ManyToOne
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     private User author;
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.REMOVE)
     @JoinColumn(name = "image_id", referencedColumnName = "id")
     private Image image;
     @OneToMany(mappedBy = "advert", cascade = CascadeType.REMOVE)

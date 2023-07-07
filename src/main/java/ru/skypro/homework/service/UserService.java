@@ -73,7 +73,7 @@ public class UserService {
     @Transactional
     public void update(RegisterReqDto reqDto, Role role) {
         log.info("update user info");
-        User user = userRepository.findByUsername(auth.getAuth().getName());
+        User user = userRepository.findByUsername(reqDto.getUsername());
         if (user == null) {
             throw new UserUnauthorizedException("User not found");
         }

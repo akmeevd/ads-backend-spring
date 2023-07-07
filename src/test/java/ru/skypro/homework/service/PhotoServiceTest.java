@@ -6,6 +6,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
 import ru.skypro.homework.exception.PhotoUploadException;
@@ -16,6 +19,7 @@ import ru.skypro.homework.repository.UserRepository;
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.nio.file.Files;
 
 import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -34,16 +38,14 @@ public class PhotoServiceTest {
     @BeforeEach
     public void setup() throws IOException {
         String dir = "src\\test\\resources\\picture";
-        File file = new File(dir + "\\images.jpeg");
-        try {
-            InputStream is = new FileInputStream(file);
-            byte[] bytes = is.readAllBytes();
-            is.close();
-            mockMultipartFile = new MockMultipartFile("picture",
-                    "images.jpeg", "image/jpeg", bytes);
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
-        }
+        Resource resource = new ClassPathResource("picture/images.jpeg");
+        mockMultipartFile = new MockMultipartFile(
+                "image",
+                "image.jpeg",
+                MediaType.IMAGE_JPEG_VALUE,
+                Files.readAllBytes(resource.getFile().toPath())
+        );
+
         image = new Image(dir);
         image.setId(1);
         avatar = new Avatar(dir);

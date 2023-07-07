@@ -11,6 +11,7 @@ import ru.skypro.homework.model.User;
 public interface UserMapper {
     User userDtoToUser(UserDto userDto);
 
+    @Mapping(target = "email", source = "username")
     @Mapping(target = "image", expression = "java(getUrlToAvatar(user))")
     UserDto userToUserDto(User user);
 
