@@ -11,11 +11,13 @@ import ru.skypro.homework.model.User;
 public interface UserMapper {
     User userDtoToUser(UserDto userDto);
 
+    @Mapping(target = "email", source = "username")
     @Mapping(target = "image", expression = "java(getUrlToAvatar(user))")
     UserDto userToUserDto(User user);
 
     @Mapping(target = "username", ignore = true)
     @Mapping(target = "password", ignore = true)
+    @Mapping(target = "id", expression = "java(user.getId())")
     void updateUser(UserDto userDto, @MappingTarget User user);
 
     @Mapping(target = "username", ignore = true)

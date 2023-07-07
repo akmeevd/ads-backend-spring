@@ -2,6 +2,7 @@ package ru.skypro.homework.model;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 import javax.persistence.*;
 import java.util.List;
@@ -9,6 +10,7 @@ import java.util.Objects;
 
 @Getter
 @Setter
+@ToString
 @Entity
 @Table(name = "adverts")
 public class Advert {
@@ -22,7 +24,7 @@ public class Advert {
     @ManyToOne
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     private User author;
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.REMOVE)
     @JoinColumn(name = "image_id", referencedColumnName = "id")
     private Image image;
     @OneToMany(mappedBy = "advert", cascade = CascadeType.REMOVE)

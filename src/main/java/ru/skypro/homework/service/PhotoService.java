@@ -79,18 +79,38 @@ public class PhotoService {
      * @return photo object
      */
     @Transactional
-    public Photo uploadAvatar(User user, MultipartFile file) {
+    public Avatar uploadAvatar(User user, MultipartFile file) {
         log.info("upload user avatar");
         try {
-            Avatar avatar = new Avatar(avatarsDir);
+            Avatar avatar = user.getAvatar();
+            if (avatar == null) {
+                avatar = new Avatar(avatarsDir);
+            }
             mapFileToPhoto(file, avatar);
-            photoRepository.save(avatar);
+            avatar = photoRepository.save(avatar);
             upload(avatar, file);
             user.setAvatar(avatar);
             userRepository.save(user);
             return avatar;
         } catch (Exception e) {
             throw new PhotoUploadException(e.getMessage());
+        }
+    }
+
+    /**
+     * Delete photo from file system
+     *
+     * @param photo photo
+     */
+    @Transactional
+    public void deleteFile(Photo photo) {
+        if (photo != null) {
+            try {
+                log.info("delete photo id " + photo.getId());
+                Files.deleteIfExists(photo.getFilePath().toAbsolutePath().toFile().toPath());
+            } catch (IOException exception) {
+                throw new PhotoUploadException(exception.getMessage());
+            }
         }
     }
 
