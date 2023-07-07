@@ -8,6 +8,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -26,6 +29,7 @@ import ru.skypro.homework.service.impl.AuthServiceImpl;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Optional;
 
@@ -57,7 +61,7 @@ public class UserServiceTest {
     private MockMultipartFile avatar;
 
     @BeforeEach
-    public void setup() {
+    public void setup() throws IOException {
         Path path = Path.of("src", "test\\resources\\picture\\images.jpeg");
         File file = new File(path.toUri());
         byte[] bytes = file.getAbsolutePath().getBytes();
@@ -71,7 +75,7 @@ public class UserServiceTest {
     @Test
     public void create() {
         doReturn(user).when(userRepository).findByUsername(any());
-        doReturn(authentication).when(authenticationComponent).getAuth();
+        //doReturn(authentication).when(authenticationComponent).getAuth();
         RegisterReqDto reqDto = new RegisterReqDto();
         userService.create(reqDto, Role.USER);
         verify(userRepository, Mockito.times(1)).save(any());
@@ -80,7 +84,7 @@ public class UserServiceTest {
     @Test
     public void update() {
         doReturn(user).when(userRepository).findByUsername(any());
-        doReturn(authentication).when(authenticationComponent).getAuth();
+        //doReturn(authentication).when(authenticationComponent).getAuth();
         RegisterReqDto reqDto = new RegisterReqDto();
         userService.update(reqDto, Role.USER);
         verify(userRepository, Mockito.times(1)).save(any());
