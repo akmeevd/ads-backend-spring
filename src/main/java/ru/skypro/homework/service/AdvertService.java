@@ -1,7 +1,6 @@
 package ru.skypro.homework.service;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -10,9 +9,7 @@ import ru.skypro.homework.dto.AdsDto;
 import ru.skypro.homework.dto.CreateAdsDto;
 import ru.skypro.homework.dto.FullAdsDto;
 import ru.skypro.homework.dto.ResponseWrapperAdsDto;
-import ru.skypro.homework.exception.ActionForbiddenException;
-import ru.skypro.homework.exception.AdvertNotFoundException;
-import ru.skypro.homework.exception.UserUnauthorizedException;
+import ru.skypro.homework.exception.*;
 import ru.skypro.homework.mapper.AdvertMapper;
 import ru.skypro.homework.model.Advert;
 import ru.skypro.homework.model.Image;
@@ -25,7 +22,7 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * service for maintain adverts via {@link AdvertRepository}
+ * Service for maintain adverts via {@link AdvertRepository}
  */
 @Service
 @Slf4j
@@ -56,11 +53,11 @@ public class AdvertService {
      * @return advert DTO object
      */
     @Transactional
-    public AdsDto create(Authentication auth, CreateAdsDto properties, MultipartFile file) {
+    public AdsDto create(CreateAdsDto properties, MultipartFile file) {
         log.info("Creat advert with properties: " + properties);
         Image image = photoService.uploadImage(file);
         Advert advert = advertMapper.createAdsDtoToAdvert(properties);
-        advert.setAuthor(userRepository.findByUsername(auth.getName()));
+        advert.setAuthor(userRepository.findByUsername(auth.getAuth().getName()));
         advert.setImage(image);
         return advertMapper.advertToAdsDto(advertRepository.save(advert));
     }
@@ -102,11 +99,16 @@ public class AdvertService {
      * @param file image file
      */
     @Transactional
-    public byte[] updateImage(int id, MultipartFile file) throws IOException {
+    public byte[] updateImage(int id, MultipartFile file) {
         log.info("Update advert image with id: " + id);
-        Advert advert = findAdvertWithAuth(id);
-        photoService.uploadImage(advert, file);
-        return file.getBytes();
+        try {
+            Advert advert = findAdvertWithAuth(id);
+            photoService.uploadImage(advert, file);
+            return file.getBytes();
+        } catch (IOException exception) {
+            log.error(exception.getMessage());
+            throw new PhotoUploadException(exception.getMessage());
+        }
     }
 
     /**
@@ -117,8 +119,7 @@ public class AdvertService {
      */
     public Image downloadImage(int id) {
         log.info("Download advert image with id: " + id);
-        Advert advert = advertRepository.findById(id)
-                .orElseThrow(() -> new AdvertNotFoundException("Advert not found"));
+        Advert advert = findAdvert(id);
         return advert.getImage();
     }
 
@@ -162,10 +163,10 @@ public class AdvertService {
 
     private Advert findAdvertWithAuth(int id) {
         Optional<Advert> advert = advertRepository.findById(id);
-        if (!advert.isPresent()) {
+        if (advert.isEmpty()) {
             throw new AdvertNotFoundException("Advert not found");
         }
-        if (auth.check(advert.get().getAuthor().getUsername())) {
+        if (auth.checkAuthNotEnough(advert.get().getAuthor().getUsername())) {
             throw new ActionForbiddenException("Forbidden");
         }
         return advert.get();
@@ -177,13 +178,5 @@ public class AdvertService {
             throw new UserUnauthorizedException("User not found");
         }
         return advertRepository.findByAuthorId(user.getId());
-    }
-
-    public void deleteByAdmin(int id, Authentication authentication) {
-        User user = userRepository.findByUsername(authentication.getName());
-        if (user.getRole().getAuthority().equals("ROLE_ADMIN")) {
-            Optional<Advert> advert = advertRepository.findById(id);
-            advertRepository.delete(advert.get());
-        }
     }
 }

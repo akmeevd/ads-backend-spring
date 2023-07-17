@@ -38,4 +38,9 @@ public class AppExceptionHandler {
     public ResponseEntity<Object> handlerPhotoUploadException(RuntimeException e, WebRequest request) {
         return new ResponseEntity<>(e.getMessage(), new HttpHeaders(), HttpStatus.BAD_REQUEST);
     }
+
+    @ExceptionHandler(PhotoDownloadException.class)
+    public ResponseEntity<Object> handlerPhotoDownloadException(RuntimeException e, WebRequest request) {
+        return new ResponseEntity<>(e.getMessage(), new HttpHeaders(), HttpStatus.BAD_REQUEST);
+    }
 }

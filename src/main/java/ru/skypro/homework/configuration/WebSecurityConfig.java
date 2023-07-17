@@ -19,10 +19,10 @@ import javax.sql.DataSource;
 @Configuration
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public class WebSecurityConfig {
-
+    @Value("${spring.datasource.url}")
+    private String databaseUrl;
     @Value("${spring.datasource.password}")
     private String databasePassword;
-
     @Value("${spring.datasource.username}")
     private String databaseUsername;
 
@@ -37,11 +37,11 @@ public class WebSecurityConfig {
 
     @Bean
     public DataSource getDataSource() {
-        DataSourceBuilder<?> dataSourceBuilder = DataSourceBuilder.create();
-        dataSourceBuilder.url("jdbc:postgresql://localhost:5432/ads");
-        dataSourceBuilder.password(databasePassword);
-        dataSourceBuilder.username(databaseUsername);
-        return dataSourceBuilder.build();
+        return DataSourceBuilder.create()
+                .url(databaseUrl)
+                .username(databaseUsername)
+                .password(databasePassword)
+                .build();
     }
 
     @Bean

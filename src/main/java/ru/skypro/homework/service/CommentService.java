@@ -121,7 +121,7 @@ public class CommentService {
         if (comment.get().getAdvert().getId() != advert.getId()) {
             throw new CommentNotFoundException("Incorrect advert for comment");
         }
-        if (auth.check(comment.get().getAuthor().getUsername())) {
+        if (auth.checkAuthNotEnough(comment.get().getAuthor().getUsername())) {
             throw new ActionForbiddenException("Forbidden");
         }
         return comment.get();

@@ -9,10 +9,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import ru.skypro.homework.dto.*;
+import ru.skypro.homework.exception.PhotoDownloadException;
 import ru.skypro.homework.model.Image;
 import ru.skypro.homework.service.AdvertService;
 
@@ -27,7 +27,7 @@ import java.nio.file.Path;
 @CrossOrigin(value = "http://localhost:3000")
 @RestController
 @RequestMapping("ads")
-@Tag(name = "Объявления")
+@Tag(name = "Adverts")
 public class AdvertController {
     private final AdvertService advertService;
 
@@ -36,19 +36,18 @@ public class AdvertController {
     }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @Operation(summary = "Добавить объявление", responses = {
+    @Operation(summary = "Create new advert", responses = {
             @ApiResponse(responseCode = "201", content = {@Content(schema = @Schema(
                     implementation = AdsDto.class), mediaType = MediaType.APPLICATION_JSON_VALUE)}),
             @ApiResponse(responseCode = "401", content = {@Content(schema = @Schema())})}
     )
-    public ResponseEntity<AdsDto> create(Authentication auth,
-                                         @RequestPart CreateAdsDto properties,
+    public ResponseEntity<AdsDto> create(@RequestPart CreateAdsDto properties,
                                          @RequestPart(name = "image") MultipartFile file) {
-        return new ResponseEntity<>(advertService.create(auth, properties, file), HttpStatus.CREATED);
+        return new ResponseEntity<>(advertService.create(properties, file), HttpStatus.CREATED);
     }
 
     @DeleteMapping("/{id}")
-    @Operation(summary = "Удалить объявление", responses = {
+    @Operation(summary = "Delete advert", responses = {
             @ApiResponse(responseCode = "204", content = {@Content(schema = @Schema())}),
             @ApiResponse(responseCode = "401", content = {@Content(schema = @Schema())}),
             @ApiResponse(responseCode = "403", content = {@Content(schema = @Schema())})}
@@ -59,7 +58,7 @@ public class AdvertController {
     }
 
     @PatchMapping("/{id}")
-    @Operation(summary = "Обновить информацию об объявлении", responses = {
+    @Operation(summary = "Update advert", responses = {
             @ApiResponse(responseCode = "200", content = {@Content(schema = @Schema(
                     implementation = AdsDto.class), mediaType = MediaType.APPLICATION_JSON_VALUE)}),
             @ApiResponse(responseCode = "401", content = {@Content(schema = @Schema())}),
@@ -71,19 +70,19 @@ public class AdvertController {
     }
 
     @PatchMapping(value = "/{id}/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @Operation(summary = "Обновить картинку объявления", responses = {
+    @Operation(summary = "Update advert image", responses = {
             @ApiResponse(responseCode = "200", content = {@Content(schema = @Schema(
                     implementation = byte[].class), mediaType = MediaType.APPLICATION_OCTET_STREAM_VALUE)}),
             @ApiResponse(responseCode = "401", content = {@Content(schema = @Schema())}),
             @ApiResponse(responseCode = "403", content = {@Content(schema = @Schema())})}
     )
     public ResponseEntity<byte[]> updateImage(@PathVariable("id") Integer id,
-                                              @RequestParam("image") MultipartFile file) throws IOException {
+                                              @RequestParam("image") MultipartFile file) {
         return ResponseEntity.ok(advertService.updateImage(id, file));
     }
 
     @GetMapping("/{id}")
-    @Operation(summary = "Получить информацию об объявлении", responses = {
+    @Operation(summary = "Get advert details", responses = {
             @ApiResponse(responseCode = "200", content = {@Content(schema = @Schema(
                     implementation = FullAdsDto.class), mediaType = MediaType.APPLICATION_JSON_VALUE)}),
             @ApiResponse(responseCode = "401", content = {@Content(schema = @Schema())})}
@@ -93,18 +92,17 @@ public class AdvertController {
     }
 
     @GetMapping("/me")
-    @Operation(summary = "Получить объявления авторизованного пользователя", responses = {
+    @Operation(summary = "Get adverts for authorized user", responses = {
             @ApiResponse(responseCode = "200", content = {@Content(schema = @Schema(
                     implementation = ResponseWrapperAdsDto.class), mediaType = MediaType.APPLICATION_JSON_VALUE)}),
             @ApiResponse(responseCode = "401", content = {@Content(schema = @Schema())})}
     )
     public ResponseEntity<ResponseWrapperAdsDto> findAllByAuthUser() {
-        ResponseWrapperAdsDto responseWrapperAdsDto = advertService.findAllByAuthUser();
-        return ResponseEntity.ok(responseWrapperAdsDto);
+        return ResponseEntity.ok(advertService.findAllByAuthUser());
     }
 
     @GetMapping
-    @Operation(summary = "Получить все объявления", responses = {
+    @Operation(summary = "Get all adverts", responses = {
             @ApiResponse(responseCode = "200", content = {@Content(schema = @Schema(
                     implementation = ResponseWrapperAdsDto.class), mediaType = MediaType.APPLICATION_JSON_VALUE)})}
     )
@@ -113,11 +111,11 @@ public class AdvertController {
     }
 
     @GetMapping("/{id}/image")
-    @Operation(summary = "Скачать картинку объявления", responses = {
+    @Operation(summary = "Download advert image", responses = {
             @ApiResponse(responseCode = "200", content = {@Content(schema = @Schema())})}
     )
     public void downloadImage(@PathVariable("id") Integer id,
-                              HttpServletResponse response) throws IOException {
+                              HttpServletResponse response) {
         Image image = advertService.downloadImage(id);
         Path path = image.getFilePath();
         try (InputStream is = Files.newInputStream(path);
@@ -125,7 +123,8 @@ public class AdvertController {
             response.setContentType(image.getFileType());
             response.setContentLength((int) image.getFileSize());
             is.transferTo(os);
+        } catch (IOException exception) {
+            throw new PhotoDownloadException(exception.getMessage());
         }
     }
-
 }
