@@ -1,6 +1,7 @@
 package ru.skypro.homework.service;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.JdbcUserDetailsManager;
 import org.springframework.stereotype.Service;
@@ -9,6 +10,7 @@ import org.springframework.web.multipart.MultipartFile;
 import ru.skypro.homework.component.AuthenticationComponent;
 import ru.skypro.homework.dto.NewPasswordDto;
 import ru.skypro.homework.dto.RegisterReqDto;
+import ru.skypro.homework.exception.PhotoUploadException;
 import ru.skypro.homework.model.Role;
 import ru.skypro.homework.dto.UserDto;
 import ru.skypro.homework.exception.UserNotFoundException;
@@ -23,7 +25,7 @@ import ru.skypro.homework.security.UserDetailsImpl;
 import java.io.IOException;
 
 /**
- * service for maintain users via {@link UserRepository}
+ * Service for maintain users via {@link UserRepository}
  */
 @Service
 @Slf4j
@@ -52,29 +54,31 @@ public class UserService {
     /**
      * Create user
      *
-     * @param reqDto user data
-     * @param role   role
+     * @param reqDto {@link RegisterReqDto}
+     * @param role   {@link Role}
      */
     @Transactional
     public void create(RegisterReqDto reqDto, Role role) {
-        log.info("create new user");
+        log.info("Create new user");
         SecuringUserDto securingUserDto = new SecuringUserDto(reqDto.getUsername(),
                 encoder.encode(reqDto.getPassword()), role, true);
-        UserDetailsImpl userDetails = new UserDetailsImpl(securingUserDto);
+        UserDetails userDetails = new UserDetailsImpl(securingUserDto);
         manager.createUser(userDetails);
+
         update(reqDto, role);
     }
 
     /**
-     * Update user info
+     * Update user info after register via {@link UserRepository}
      *
-     * @param reqDto user data
+     * @param reqDto {@link RegisterReqDto}
      */
     @Transactional
     public void update(RegisterReqDto reqDto, Role role) {
-        log.info("update user info");
+        log.info("Update user info after creation");
         User user = userRepository.findByUsername(reqDto.getUsername());
         if (user == null) {
+            log.error("User not found");
             throw new UserUnauthorizedException("User not found");
         }
         userMapper.updateUser(reqDto, user);
@@ -85,14 +89,15 @@ public class UserService {
     /**
      * Update user info via {@link UserRepository}
      *
-     * @param userDto user DTO object
-     * @return user DTO object
+     * @param userDto {@link UserDto}
+     * @return {@link UserDto}
      */
     @Transactional
     public UserDto update(UserDto userDto) {
-        log.info("update user info: " + userDto);
+        log.info("Update user info: " + userDto);
         User user = userRepository.findByUsername(auth.getAuth().getName());
         if (user == null) {
+            log.error("User not found");
             throw new UserUnauthorizedException("User not found");
         }
         userMapper.updateUser(userDto, user);
@@ -107,27 +112,31 @@ public class UserService {
      */
     @Transactional
     public void setPassword(NewPasswordDto newPassword) {
-        log.info("set new password");
+        log.info("Set new password");
         manager.changePassword(newPassword.getCurrentPassword(), encoder.encode(newPassword.getNewPassword()));
     }
 
     /**
-     * Update user image
+     * Update avatar of authorized user
      *
-     * @param image image
+     * @param image {@link MultipartFile}
      */
     @Transactional
-    public byte[] updateAvatar(MultipartFile image) throws IOException {
-        log.info("update user image");
-        User user = userRepository.findByUsername(auth.getAuth().getName());
-        photoService.uploadAvatar(user, image);
-        return image.getBytes();
+    public byte[] updateAvatar(MultipartFile image) {
+        log.info("Update user image");
+        try {
+            User user = userRepository.findByUsername(auth.getAuth().getName());
+            photoService.uploadAvatar(user, image);
+            return image.getBytes();
+        } catch (IOException exception) {
+            throw new PhotoUploadException(exception.getMessage());
+        }
     }
 
     /**
-     * Download avatar authorized user
+     * Download avatar of authorized user
      *
-     * @return avatar object
+     * @return {@link Avatar}
      */
     public Avatar downloadAvatar() {
         log.info("Download user image with email: " + auth.getAuth().getName());
@@ -139,7 +148,7 @@ public class UserService {
      * Download avatar by user id
      *
      * @param id user id
-     * @return avatar object
+     * @return {@link Avatar}
      */
     public Avatar downloadAvatarByUserId(int id) {
         log.info("Download user image with id: " + id);
@@ -151,7 +160,7 @@ public class UserService {
     /**
      * Get user info via {@link UserRepository}
      *
-     * @return user DTO object
+     * @return {@link UserDto}
      */
     public UserDto findInfo() {
         User user = userRepository.findByUsername(auth.getAuth().getName());
