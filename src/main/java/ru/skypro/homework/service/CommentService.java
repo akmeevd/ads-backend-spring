@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Service for creating, deleting, updating, finding comments from {@link CommentRepository}
+ * Service maintain comments from {@link CommentRepository}
  */
 @Service
 @Slf4j
@@ -46,15 +46,15 @@ public class CommentService {
     }
 
     /**
-     * method for creating comment and save him into {@link CommentRepository}
+     * Create comment via {@link CommentRepository}
      *
      * @param advertId   advert id
-     * @param commentDto comment DTO object
-     * @return commentDto
+     * @param commentDto {@link CommentDto}
+     * @return {@link CommentDto}
      */
     @Transactional
     public CommentDto create(Integer advertId, CommentDto commentDto) {
-        log.info("creating comment:" + commentDto.getText() + " for advert with id: " + advertId);
+        log.info("Create comment:" + commentDto.getText() + " for advert with id: " + advertId);
         Advert advert = findAdvert(advertId);
         User user = userRepository.findByUsername(auth.getAuth().getName());
         Comment comment = commentMapper.commentDtoToComment(commentDto);
@@ -66,29 +66,29 @@ public class CommentService {
     }
 
     /**
-     * method for deleting comment from db by advertId and commentId
+     * Delete comment via {@link CommentRepository}
      *
      * @param advertId  advert id
      * @param commentId comment id
      */
     @Transactional
     public void delete(Integer advertId, Integer commentId) {
-        log.info("deleting comment with id: " + commentId);
+        log.info("Delete comment with id: " + commentId);
         Advert advert = findAdvert(advertId);
         Comment comment = findCommentWithAuth(advert, commentId);
         commentRepository.delete(comment);
     }
 
     /**
-     * method for updating comment
+     * Update comment via {@link CommentRepository}
      *
      * @param advertId   advert id
      * @param commentId  comment id
-     * @param commentDto comment DTO object
+     * @param commentDto {@link CommentDto}
      */
     @Transactional
     public CommentDto update(Integer advertId, Integer commentId, CommentDto commentDto) {
-        log.info("updating comment with id: " + advertId);
+        log.info("Update comment with id: " + advertId);
         Advert advert = findAdvert(advertId);
         Comment comment = findCommentWithAuth(advert, commentId);
         commentMapper.updateComment(commentDto, comment);
@@ -97,10 +97,10 @@ public class CommentService {
     }
 
     /**
-     * method for getting number and list of comments by advertId
+     * Find all comment for advert via {@link CommentRepository}
      *
      * @param advertId advert id
-     * @return responseWrapperCommentDto contains number of comments and list of comments
+     * @return {@link ResponseWrapperCommentDto} contains number of comments and list of comments
      */
     public ResponseWrapperCommentDto findAll(Integer advertId) {
         log.info("getting all comments for advert with id: " + advertId);
@@ -115,7 +115,7 @@ public class CommentService {
 
     public Comment findCommentWithAuth(Advert advert, int id) {
         Optional<Comment> comment = commentRepository.findById(id);
-        if (!comment.isPresent()) {
+        if (comment.isEmpty()) {
             throw new CommentNotFoundException("Comment not found");
         }
         if (comment.get().getAdvert().getId() != advert.getId()) {
