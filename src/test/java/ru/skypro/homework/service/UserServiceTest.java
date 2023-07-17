@@ -8,9 +8,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.Resource;
-import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -25,11 +22,9 @@ import ru.skypro.homework.model.Avatar;
 import ru.skypro.homework.model.Role;
 import ru.skypro.homework.model.User;
 import ru.skypro.homework.repository.UserRepository;
-import ru.skypro.homework.service.impl.AuthServiceImpl;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Optional;
 
@@ -48,7 +43,7 @@ public class UserServiceTest {
     @Mock
     private JdbcUserDetailsManager jdbcUserDetailsManager;
     @Mock
-    private AuthServiceImpl authService;
+    private AuthService authService;
     @Mock
     private AuthenticationComponent authenticationComponent;
     private User user;
