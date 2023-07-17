@@ -6,26 +6,20 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.JdbcUserDetailsManager;
-import ru.skypro.homework.component.AuthenticationComponent;
 import ru.skypro.homework.dto.RegisterReqDto;
 import ru.skypro.homework.dto.SecuringUserDto;
-import ru.skypro.homework.mapper.UserMapper;
 import ru.skypro.homework.model.Role;
-import ru.skypro.homework.model.User;
-import ru.skypro.homework.repository.UserRepository;
 import ru.skypro.homework.security.UserDetailsImpl;
-import ru.skypro.homework.service.impl.AuthServiceImpl;
 
 import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(MockitoExtension.class)
-public class AuthServiceImplTest {
+public class AuthServiceTest {
     @InjectMocks
-    private AuthServiceImpl authService;
+    private AuthService authService;
     @Mock
     private JdbcUserDetailsManager manager;
     @Mock

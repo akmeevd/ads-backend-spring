@@ -11,9 +11,9 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
-import ru.skypro.homework.exception.PhotoUploadException;
+import ru.skypro.homework.exception.ImageUploadException;
 import ru.skypro.homework.model.*;
-import ru.skypro.homework.repository.PhotoRepository;
+import ru.skypro.homework.repository.ImageRepository;
 import ru.skypro.homework.repository.UserRepository;
 
 import java.io.*;
@@ -25,15 +25,15 @@ import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(MockitoExtension.class)
-public class PhotoServiceTest {
+public class PhotoAbstractServiceTest {
     @InjectMocks
-    private PhotoService photoService;
+    private ImageService imageService;
     @Mock
-    private PhotoRepository photoRepository;
+    private ImageRepository imageRepository;
     @Mock
     private UserRepository userRepository;
     private MockMultipartFile mockMultipartFile;
-    private Photo image, avatar;
+    private Image image, avatar;
 
     @BeforeEach
     public void setup() throws IOException {
@@ -46,7 +46,7 @@ public class PhotoServiceTest {
                 Files.readAllBytes(resource.getFile().toPath())
         );
 
-        image = new Image(dir);
+        image = new Photo(dir);
         image.setId(1);
         avatar = new Avatar(dir);
         avatar.setId(2);
@@ -56,11 +56,11 @@ public class PhotoServiceTest {
     public void uploadImage() throws NoSuchMethodException,
             InvocationTargetException, IllegalAccessException {
         getPrivateMethods(image);
-        doReturn(image).when(photoRepository).save(any());
-        Image image = photoService.uploadImage(mockMultipartFile);
-        assertNotNull(image);
-        assertEquals(image.getFileSize(), mockMultipartFile.getSize());
-        verify(photoRepository, times(1)).save(any());
+        doReturn(image).when(imageRepository).save(any());
+        Photo photo = imageService.uploadPhoto(mockMultipartFile);
+        assertNotNull(photo);
+        assertEquals(photo.getFileSize(), mockMultipartFile.getSize());
+        verify(imageRepository, times(1)).save(any());
     }
 
     @Test
@@ -68,12 +68,12 @@ public class PhotoServiceTest {
             NoSuchMethodException, IllegalAccessException {
         getPrivateMethods(image);
         Advert advert = new Advert();
-        advert.setImage((Image) image);
-        doReturn(image).when(photoRepository).save(any());
-        Image image = photoService.uploadImage(advert, mockMultipartFile);
-        assertNotNull(image);
-        assertEquals(image.getFileSize(), mockMultipartFile.getSize());
-        verify(photoRepository, times(1)).save(any());
+        advert.setPhoto((Photo) image);
+        doReturn(image).when(imageRepository).save(any());
+        Photo photo = imageService.uploadPhoto(advert, mockMultipartFile);
+        assertNotNull(photo);
+        assertEquals(photo.getFileSize(), mockMultipartFile.getSize());
+        verify(imageRepository, times(1)).save(any());
     }
 
     @Test
@@ -82,54 +82,54 @@ public class PhotoServiceTest {
         getPrivateMethods(avatar);
         User user = new User();
         user.setAvatar((Avatar) avatar);
-        doReturn(avatar).when(photoRepository).save(any());
+        doReturn(avatar).when(imageRepository).save(any());
         doReturn(user).when(userRepository).save(any());
-        Avatar avatar = photoService.uploadAvatar(user, mockMultipartFile);
+        Avatar avatar = imageService.uploadAvatar(user, mockMultipartFile);
         assertNotNull(avatar);
         assertEquals(avatar, avatar);
-        verify(photoRepository, times(1)).save(any());
+        verify(imageRepository, times(1)).save(any());
         verify(userRepository, times(1)).save(any());
     }
 
-    public void getPrivateMethods(Photo photo) throws NoSuchMethodException,
+    public void getPrivateMethods(Image image) throws NoSuchMethodException,
             InvocationTargetException, IllegalAccessException {
         Class[] parameters1 = new Class[2];
         parameters1[0] = MultipartFile.class;
-        parameters1[1] = Photo.class;
-        Method method1 = photoService.getClass().getDeclaredMethod("mapFileToPhoto", parameters1);
+        parameters1[1] = Image.class;
+        Method method1 = imageService.getClass().getDeclaredMethod("mapFileToPhoto", parameters1);
         method1.setAccessible(true);
         Object[] arguments1 = new Object[2];
         arguments1[0] = mockMultipartFile;
-        arguments1[1] = photo;
-        method1.invoke(photoService, arguments1);
+        arguments1[1] = image;
+        method1.invoke(imageService, arguments1);
         Class[] parameters2 = new Class[2];
-        parameters2[0] = Photo.class;
+        parameters2[0] = Image.class;
         parameters2[1] = MultipartFile.class;
-        Method method2 = photoService.getClass().getDeclaredMethod("upload", parameters2);
+        Method method2 = imageService.getClass().getDeclaredMethod("upload", parameters2);
         method2.setAccessible(true);
         Object[] arguments2 = new Object[2];
-        arguments2[0] = photo;
+        arguments2[0] = image;
         arguments2[1] = mockMultipartFile;
-        method2.invoke(photoService, arguments2);
+        method2.invoke(imageService, arguments2);
     }
 
     @Test
     public void doesThrowPhotoUploadExceptionWhenUploadAvatar() {
         User user = new User();
-        avatar.setPhotoDir(null);
-        doReturn(avatar).when(photoRepository).save(any());
-        assertThrows(PhotoUploadException.class,
-                () -> photoService.uploadAvatar(user, mockMultipartFile));
+        avatar.setImageDir(null);
+        doReturn(avatar).when(imageRepository).save(any());
+        assertThrows(ImageUploadException.class,
+                () -> imageService.uploadAvatar(user, mockMultipartFile));
     }
 
     @Test
     public void doesThrowPhotoUploadExceptionWhenUploadImage() {
         Advert advert = new Advert();
-        image.setPhotoDir(null);
-        doReturn(image).when(photoRepository).save(any());
-        assertThrows(PhotoUploadException.class,
-                () -> photoService.uploadImage(mockMultipartFile));
-        assertThrows(PhotoUploadException.class,
-                () -> photoService.uploadImage(advert, mockMultipartFile));
+        image.setImageDir(null);
+        doReturn(image).when(imageRepository).save(any());
+        assertThrows(ImageUploadException.class,
+                () -> imageService.uploadPhoto(mockMultipartFile));
+        assertThrows(ImageUploadException.class,
+                () -> imageService.uploadPhoto(advert, mockMultipartFile));
     }
 }

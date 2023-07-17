@@ -24,25 +24,12 @@ import static ru.skypro.homework.model.Role.USER;
 @CrossOrigin(value = "http://localhost:3000")
 @RestController
 @RequiredArgsConstructor
-@Tag(name = "Регистрация/Авторизация")
+@Tag(name = "Authentication and authorization")
 public class AuthController {
     private final AuthService authService;
 
-    @PostMapping("/login")
-    @Operation(summary = "Авторизация пользователя", responses = {
-            @ApiResponse(responseCode = "200", content = {@Content(schema = @Schema())}),
-            @ApiResponse(responseCode = "403", content = {@Content(schema = @Schema())})}
-    )
-    public ResponseEntity<?> login(@RequestBody LoginReqDto req) {
-        if (authService.login(req.getUsername(), req.getPassword())) {
-            return ResponseEntity.ok().build();
-        } else {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
-    }
-
     @PostMapping("/register")
-    @Operation(summary = "Регистрация пользователя", responses = {
+    @Operation(summary = "User registration", responses = {
             @ApiResponse(responseCode = "200", content = {@Content(schema = @Schema())}),
             @ApiResponse(responseCode = "400", content = {@Content(schema = @Schema())})}
     )
@@ -52,6 +39,19 @@ public class AuthController {
             return ResponseEntity.ok().build();
         } else {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+    }
+
+    @PostMapping("/login")
+    @Operation(summary = "User authorization", responses = {
+            @ApiResponse(responseCode = "200", content = {@Content(schema = @Schema())}),
+            @ApiResponse(responseCode = "403", content = {@Content(schema = @Schema())})}
+    )
+    public ResponseEntity<?> login(@RequestBody LoginReqDto req) {
+        if (authService.login(req.getUsername(), req.getPassword())) {
+            return ResponseEntity.ok().build();
+        } else {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
     }
 }

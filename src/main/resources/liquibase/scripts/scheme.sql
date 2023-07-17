@@ -9,7 +9,7 @@ create table if not exists users
     last_name  varchar(70)        not null,
     email      varchar(50) unique not null,
     phone      varchar(15),
-    image      text,
+    photo      text,
     role       varchar(10)
 );
 
@@ -19,7 +19,7 @@ create table if not exists adverts
     title       varchar(100)       not null,
     description text,
     price       integer,
-    image       text,
+    photo       text,
     user_id     integer references users (id)
 );
 
@@ -52,7 +52,7 @@ create table if not exists photos
     file_extension  varchar(10),
     file_size       bigint
 );
-alter table adverts drop column image;
+alter table adverts drop column photo;
 alter table adverts add column image_id integer references photos(id);
 
 --changeSet akmeevd:2
@@ -66,8 +66,25 @@ create table authorities(
 
 -- changeSet 11th:4
 alter table users drop column email,
-                  drop column image,
+                  drop column photo,
                   add column username varchar(50) unique,
                   add column enabled bool,
                   alter column first_name drop not null,
                   alter column last_name drop not null;
+
+-- changeSet 11th:5
+create table if not exists images
+(
+    id              serial primary key not null,
+    image_type      varchar(10),
+    image_dir       varchar(50),
+    file_type       varchar(30),
+    file_name       varchar(100),
+    file_extension  varchar(10),
+    file_size       bigint
+);
+alter table users drop column avatar_id;
+alter table users add column image_id integer references images(id);
+alter table adverts drop column image_id;
+alter table adverts add column image_id integer references images(id);
+drop table photos;

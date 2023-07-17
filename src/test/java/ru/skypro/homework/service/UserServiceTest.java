@@ -8,9 +8,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.Resource;
-import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -22,14 +19,13 @@ import ru.skypro.homework.dto.UserDto;
 import ru.skypro.homework.exception.UserUnauthorizedException;
 import ru.skypro.homework.mapper.UserMapper;
 import ru.skypro.homework.model.Avatar;
+import ru.skypro.homework.model.Image;
 import ru.skypro.homework.model.Role;
 import ru.skypro.homework.model.User;
 import ru.skypro.homework.repository.UserRepository;
-import ru.skypro.homework.service.impl.AuthServiceImpl;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Optional;
 
@@ -48,7 +44,7 @@ public class UserServiceTest {
     @Mock
     private JdbcUserDetailsManager jdbcUserDetailsManager;
     @Mock
-    private AuthServiceImpl authService;
+    private AuthService authService;
     @Mock
     private AuthenticationComponent authenticationComponent;
     private User user;
@@ -57,7 +53,7 @@ public class UserServiceTest {
     @Mock
     private UserMapper userMapper;
     @Mock
-    private PhotoService photoService;
+    private ImageService imageService;
     private MockMultipartFile avatar;
 
     @BeforeEach
@@ -113,8 +109,8 @@ public class UserServiceTest {
     public void updateAvatar() throws IOException {
         doReturn(user).when(userRepository).findByUsername(any());
         doReturn(authentication).when(authenticationComponent).getAuth();
-        byte[] bytes  = userService.updateAvatar(avatar);
-        verify(photoService, Mockito.times(1)).
+        byte[] bytes  = userService.updateImage(avatar);
+        verify(imageService, Mockito.times(1)).
                 uploadAvatar(user, avatar);
         assertEquals(bytes, avatar.getBytes());
     }
@@ -123,14 +119,14 @@ public class UserServiceTest {
     public void downloadAvatar() {
         doReturn(user).when(userRepository).findByUsername(any());
         doReturn(authentication).when(authenticationComponent).getAuth();
-        Avatar avatar = userService.downloadAvatar();
+        Image avatar = userService.downloadImage();
         assertNotNull(avatar);
     }
 
     @Test
     public void downloadAvatarByUserId() {
         when(userRepository.findById(any())).thenReturn(Optional.ofNullable(user));
-        Avatar avatar = userService.downloadAvatarByUserId(user.getId());
+        Image avatar = userService.downloadImageByUserId(user.getId());
         assertNotNull(avatar);
         assertEquals(avatar, user.getAvatar());
     }
