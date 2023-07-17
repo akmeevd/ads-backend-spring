@@ -12,8 +12,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import ru.skypro.homework.dto.*;
-import ru.skypro.homework.exception.PhotoDownloadException;
+import ru.skypro.homework.exception.ImageDownloadException;
 import ru.skypro.homework.model.Image;
+import ru.skypro.homework.model.Photo;
 import ru.skypro.homework.service.AdvertService;
 
 import javax.servlet.http.HttpServletResponse;
@@ -116,15 +117,15 @@ public class AdvertController {
     )
     public void downloadImage(@PathVariable("id") Integer id,
                               HttpServletResponse response) {
-        Image image = advertService.downloadImage(id);
-        Path path = image.getFilePath();
+        Image photo = advertService.downloadImage(id);
+        Path path = photo.getFilePath();
         try (InputStream is = Files.newInputStream(path);
              OutputStream os = response.getOutputStream();) {
-            response.setContentType(image.getFileType());
-            response.setContentLength((int) image.getFileSize());
+            response.setContentType(photo.getFileType());
+            response.setContentLength((int) photo.getFileSize());
             is.transferTo(os);
         } catch (IOException exception) {
-            throw new PhotoDownloadException(exception.getMessage());
+            throw new ImageDownloadException(exception.getMessage());
         }
     }
 }

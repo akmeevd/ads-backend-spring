@@ -40,7 +40,7 @@ public interface AdvertMapper {
     }
 
     default String getUrlToImage(Advert advert) {
-        if (advert.getImage() == null) {
+        if (advert.getPhoto() == null) {
             return null;
         }
         return "/ads/" + advert.getId() + "/image";

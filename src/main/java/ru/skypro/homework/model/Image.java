@@ -1,22 +1,45 @@
 package ru.skypro.homework.model;
 
-import javax.persistence.DiscriminatorValue;
-import javax.persistence.Entity;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+
+import javax.persistence.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Objects;
 
-@Entity
-@DiscriminatorValue("IMAGE")
-public class Image extends Photo {
-    public Image() {
-    }
+@Getter
+@Setter
+@ToString
+@Entity(name = "images")
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+@DiscriminatorColumn(name = "image_type", discriminatorType = DiscriminatorType.STRING)
+public abstract class Image {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(nullable = false)
+    private int id;
+    private String imageDir;
+    private String fileType;
+    private String fileName;
+    private String fileExtension;
+    private long fileSize;
 
-    public Image(String dir) {
-        this.setPhotoDir(dir);
+    public Path getFilePath() {
+        return Paths.get(this.getImageDir(), this.getId() + "." + this.getFileExtension());
     }
 
     @Override
-    public Path getFilePath() {
-        return Paths.get(this.getPhotoDir(), this.getId() + "." + this.getFileExtension());
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Image image = (Image) o;
+        return id == image.id;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
     }
 }

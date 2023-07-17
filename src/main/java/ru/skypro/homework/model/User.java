@@ -2,7 +2,6 @@ package ru.skypro.homework.model;
 
 import lombok.Getter;
 import lombok.Setter;
-import lombok.ToString;
 
 import javax.persistence.*;
 import java.util.Objects;
@@ -12,8 +11,7 @@ import java.util.Set;
 @Setter
 @Entity
 @Table(name = "users")
-@ToString
-public class User{
+public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(nullable = false)
@@ -24,7 +22,7 @@ public class User{
     private String lastName;
     private String phone;
     @ManyToOne
-    @JoinColumn(name = "avatar_id", referencedColumnName = "id")
+    @JoinColumn(name = "image_id", referencedColumnName = "id")
     private Avatar avatar;
     @Enumerated(EnumType.STRING)
     private Role role;
@@ -46,5 +44,4 @@ public class User{
     public int hashCode() {
         return Objects.hash(id);
     }
-
 }

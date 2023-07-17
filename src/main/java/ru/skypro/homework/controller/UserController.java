@@ -12,8 +12,9 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import ru.skypro.homework.dto.NewPasswordDto;
 import ru.skypro.homework.dto.UserDto;
-import ru.skypro.homework.exception.PhotoDownloadException;
+import ru.skypro.homework.exception.ImageDownloadException;
 import ru.skypro.homework.model.Avatar;
+import ru.skypro.homework.model.Image;
 import ru.skypro.homework.service.UserService;
 
 import javax.servlet.http.HttpServletResponse;
@@ -61,7 +62,7 @@ public class UserController {
             @ApiResponse(responseCode = "401", content = {@Content(schema = @Schema())})}
     )
     public ResponseEntity<byte[]> updateAvatar(@RequestParam("image") MultipartFile avatar) {
-        return ResponseEntity.ok(userService.updateAvatar(avatar));
+        return ResponseEntity.ok(userService.updateImage(avatar));
     }
 
     @GetMapping("/me")
@@ -78,8 +79,8 @@ public class UserController {
     @Operation(summary = "Get avatar of authorized user", responses = {
             @ApiResponse(responseCode = "200", content = {@Content(schema = @Schema())})}
     )
-    public void downloadAvatar(HttpServletResponse response) {
-        Avatar avatar = userService.downloadAvatar();
+    public void downloadImage(HttpServletResponse response) {
+        Image avatar = userService.downloadImage();
         downloadAvatar(response, avatar);
     }
 
@@ -87,13 +88,13 @@ public class UserController {
     @Operation(summary = "Get avatar of user by id", responses = {
             @ApiResponse(responseCode = "200", content = {@Content(schema = @Schema())})}
     )
-    public void downloadAvatar(@PathVariable("id") Integer id,
-                               HttpServletResponse response) {
-        Avatar avatar = userService.downloadAvatarByUserId(id);
+    public void downloadImage(@PathVariable("id") Integer id,
+                              HttpServletResponse response) {
+        Image avatar = userService.downloadImageByUserId(id);
         downloadAvatar(response, avatar);
     }
 
-    private void downloadAvatar(HttpServletResponse response, Avatar avatar) {
+    private void downloadAvatar(HttpServletResponse response, Image avatar) {
         if (avatar != null) {
             try (InputStream is = Files.newInputStream(avatar.getFilePath());
                  OutputStream os = response.getOutputStream();) {
@@ -101,7 +102,7 @@ public class UserController {
                 response.setContentLength((int) avatar.getFileSize());
                 is.transferTo(os);
             } catch (IOException exception) {
-                throw new PhotoDownloadException(exception.getMessage());
+                throw new ImageDownloadException(exception.getMessage());
             }
         }
     }

@@ -10,13 +10,13 @@ import org.springframework.web.multipart.MultipartFile;
 import ru.skypro.homework.component.AuthenticationComponent;
 import ru.skypro.homework.dto.NewPasswordDto;
 import ru.skypro.homework.dto.RegisterReqDto;
-import ru.skypro.homework.exception.PhotoUploadException;
+import ru.skypro.homework.exception.ImageUploadException;
+import ru.skypro.homework.model.Image;
 import ru.skypro.homework.model.Role;
 import ru.skypro.homework.dto.UserDto;
 import ru.skypro.homework.exception.UserNotFoundException;
 import ru.skypro.homework.exception.UserUnauthorizedException;
 import ru.skypro.homework.mapper.UserMapper;
-import ru.skypro.homework.model.Avatar;
 import ru.skypro.homework.model.User;
 import ru.skypro.homework.repository.UserRepository;
 import ru.skypro.homework.dto.SecuringUserDto;
@@ -34,25 +34,25 @@ public class UserService {
     private final UserMapper userMapper;
     private final JdbcUserDetailsManager manager;
     private final PasswordEncoder encoder;
-    private final PhotoService photoService;
+    private final ImageService imageService;
     private final AuthenticationComponent auth;
 
     public UserService(UserRepository userRepository,
                        UserMapper userMapper,
                        JdbcUserDetailsManager manager,
                        PasswordEncoder encoder,
-                       PhotoService photoService,
+                       ImageService imageService,
                        AuthenticationComponent auth) {
         this.userRepository = userRepository;
         this.userMapper = userMapper;
         this.manager = manager;
         this.encoder = encoder;
-        this.photoService = photoService;
+        this.imageService = imageService;
         this.auth = auth;
     }
 
     /**
-     * Create user
+     * Create user via {@link UserRepository}
      *
      * @param reqDto {@link RegisterReqDto}
      * @param role   {@link Role}
@@ -64,7 +64,6 @@ public class UserService {
                 encoder.encode(reqDto.getPassword()), role, true);
         UserDetails userDetails = new UserDetailsImpl(securingUserDto);
         manager.createUser(userDetails);
-
         update(reqDto, role);
     }
 
@@ -72,6 +71,7 @@ public class UserService {
      * Update user info after register via {@link UserRepository}
      *
      * @param reqDto {@link RegisterReqDto}
+     * @param role {@link Role}
      */
     @Transactional
     public void update(RegisterReqDto reqDto, Role role) {
@@ -108,7 +108,7 @@ public class UserService {
     /**
      * Change user password
      *
-     * @param newPassword new password
+     * @param newPassword {@link NewPasswordDto}
      */
     @Transactional
     public void setPassword(NewPasswordDto newPassword) {
@@ -119,27 +119,29 @@ public class UserService {
     /**
      * Update avatar of authorized user
      *
-     * @param image {@link MultipartFile}
+     * @param file {@link MultipartFile}
+     * @return bytes
      */
     @Transactional
-    public byte[] updateAvatar(MultipartFile image) {
-        log.info("Update user image");
+    public byte[] updateImage(MultipartFile file) {
+        log.info("Update user avatar");
         try {
             User user = userRepository.findByUsername(auth.getAuth().getName());
-            photoService.uploadAvatar(user, image);
-            return image.getBytes();
+            imageService.uploadAvatar(user, file);
+            return file.getBytes();
         } catch (IOException exception) {
-            throw new PhotoUploadException(exception.getMessage());
+            log.error(exception.getMessage());
+            throw new ImageUploadException(exception.getMessage());
         }
     }
 
     /**
      * Download avatar of authorized user
      *
-     * @return {@link Avatar}
+     * @return {@link Image}
      */
-    public Avatar downloadAvatar() {
-        log.info("Download user image with email: " + auth.getAuth().getName());
+    public Image downloadImage() {
+        log.info("Download user avatar with email: " + auth.getAuth().getName());
         User user = userRepository.findByUsername(auth.getAuth().getName());
         return user.getAvatar();
     }
@@ -148,9 +150,9 @@ public class UserService {
      * Download avatar by user id
      *
      * @param id user id
-     * @return {@link Avatar}
+     * @return {@link Image}
      */
-    public Avatar downloadAvatarByUserId(int id) {
+    public Image downloadImageByUserId(int id) {
         log.info("Download user image with id: " + id);
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException("User not found"));

@@ -20,10 +20,7 @@ import ru.skypro.homework.exception.ActionForbiddenException;
 import ru.skypro.homework.exception.AdvertNotFoundException;
 import ru.skypro.homework.exception.UserUnauthorizedException;
 import ru.skypro.homework.mapper.AdvertMapper;
-import ru.skypro.homework.model.Advert;
-import ru.skypro.homework.model.Image;
-import ru.skypro.homework.model.Role;
-import ru.skypro.homework.model.User;
+import ru.skypro.homework.model.*;
 import ru.skypro.homework.repository.AdvertRepository;
 import ru.skypro.homework.repository.UserRepository;
 
@@ -49,7 +46,7 @@ public class AdvertServiceTest {
     @Mock
     private UserRepository userRepository;
     @Mock
-    private PhotoService photoService;
+    private ImageService imageService;
     @Mock
     private AuthenticationComponent auth;
     @Mock
@@ -66,7 +63,7 @@ public class AdvertServiceTest {
         advert = new Advert();
         advert.setId(1);
         advert.setAuthor(user);
-        advert.setImage(new Image());
+        advert.setPhoto(new Photo());
         Resource resource = new ClassPathResource("picture/images.jpeg");
         mockMultipartFile = new MockMultipartFile(
                 "image",
@@ -110,7 +107,7 @@ public class AdvertServiceTest {
     @Test
     public void updateImage() throws IOException {
         doReturn(Optional.of(advert)).when(advertRepository).findById(any());
-        doReturn(advert.getImage()).when(photoService).uploadImage(any(), any());
+        doReturn(advert.getPhoto()).when(imageService).uploadPhoto(any(), any());
         byte[] actualImageBytes = advertService.updateImage(advert.getId(), mockMultipartFile);
         assertNotNull(actualImageBytes);
         assertArrayEquals(mockMultipartFile.getBytes(), actualImageBytes);
@@ -119,9 +116,9 @@ public class AdvertServiceTest {
     @Test
     public void downloadImage() {
         doReturn(Optional.of(advert)).when(advertRepository).findById(any());
-        Image actualImage = advertService.downloadImage(advert.getId());
-        assertNotNull(actualImage);
-        assertEquals(advert.getImage(), actualImage);
+        Image actualPhoto = advertService.downloadImage(advert.getId());
+        assertNotNull(actualPhoto);
+        assertEquals(advert.getPhoto(), actualPhoto);
     }
 
     @Test

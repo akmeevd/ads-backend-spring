@@ -13,6 +13,7 @@ import ru.skypro.homework.exception.*;
 import ru.skypro.homework.mapper.AdvertMapper;
 import ru.skypro.homework.model.Advert;
 import ru.skypro.homework.model.Image;
+import ru.skypro.homework.model.Photo;
 import ru.skypro.homework.model.User;
 import ru.skypro.homework.repository.AdvertRepository;
 import ru.skypro.homework.repository.UserRepository;
@@ -30,35 +31,35 @@ public class AdvertService {
     private final AdvertRepository advertRepository;
     private final AdvertMapper advertMapper;
     private final UserRepository userRepository;
-    private final PhotoService photoService;
+    private final ImageService imageService;
     private final AuthenticationComponent auth;
 
     public AdvertService(AdvertRepository advertRepository,
                          AdvertMapper advertMapper,
                          UserRepository userRepository,
-                         PhotoService photoService,
+                         ImageService imageService,
                          AuthenticationComponent auth) {
         this.advertRepository = advertRepository;
         this.advertMapper = advertMapper;
         this.userRepository = userRepository;
-        this.photoService = photoService;
+        this.imageService = imageService;
         this.auth = auth;
     }
 
     /**
      * Create advert via {@link AdvertRepository}
      *
-     * @param properties data to create advert
-     * @param file       image file
-     * @return advert DTO object
+     * @param properties {@link CreateAdsDto}
+     * @param file       {@link MultipartFile}
+     * @return {@link AdsDto}
      */
     @Transactional
     public AdsDto create(CreateAdsDto properties, MultipartFile file) {
         log.info("Creat advert with properties: " + properties);
-        Image image = photoService.uploadImage(file);
+        Photo photo = imageService.uploadPhoto(file);
         Advert advert = advertMapper.createAdsDtoToAdvert(properties);
         advert.setAuthor(userRepository.findByUsername(auth.getAuth().getName()));
-        advert.setImage(image);
+        advert.setPhoto(photo);
         return advertMapper.advertToAdsDto(advertRepository.save(advert));
     }
 
@@ -71,17 +72,17 @@ public class AdvertService {
     public void delete(int id) {
         log.info("Delete advert with id: " + id);
         Advert advert = findAdvertWithAuth(id);
-        Image image = advert.getImage();
+        Photo photo = advert.getPhoto();
         advertRepository.delete(advert);
-        photoService.deleteFile(image);
+        imageService.deleteFile(photo);
     }
 
     /**
      * Update advert via {@link AdvertRepository}
      *
      * @param id         advert id
-     * @param properties data to update
-     * @return advert DTO object
+     * @param properties {@link CreateAdsDto}
+     * @return {@link AdsDto}
      */
     @Transactional
     public AdsDto update(int id, CreateAdsDto properties) {
@@ -96,18 +97,19 @@ public class AdvertService {
      * Update advert image
      *
      * @param id   advert id
-     * @param file image file
+     * @param file {@link MultipartFile}
+     * @return image bytes
      */
     @Transactional
     public byte[] updateImage(int id, MultipartFile file) {
         log.info("Update advert image with id: " + id);
         try {
             Advert advert = findAdvertWithAuth(id);
-            photoService.uploadImage(advert, file);
+            imageService.uploadPhoto(advert, file);
             return file.getBytes();
         } catch (IOException exception) {
             log.error(exception.getMessage());
-            throw new PhotoUploadException(exception.getMessage());
+            throw new ImageUploadException(exception.getMessage());
         }
     }
 
@@ -115,18 +117,18 @@ public class AdvertService {
      * Download advert image
      *
      * @param id advert id
-     * @return image
+     * @return {@link Image}
      */
     public Image downloadImage(int id) {
         log.info("Download advert image with id: " + id);
         Advert advert = findAdvert(id);
-        return advert.getImage();
+        return advert.getPhoto();
     }
 
     /**
      * Find all adverts via {@link AdvertRepository}
      *
-     * @return list of adverts
+     * @return {@link ResponseWrapperAdsDto}
      */
     public ResponseWrapperAdsDto findAll() {
         log.info("Find all adverts");
@@ -138,7 +140,7 @@ public class AdvertService {
      * Find advert by id via {@link AdvertRepository}
      *
      * @param id advert id
-     * @return advert DTO object
+     * @return {@link FullAdsDto}
      */
     public FullAdsDto findById(int id) {
         log.info("Find advert by id: " + id);
@@ -149,7 +151,7 @@ public class AdvertService {
     /**
      * Find all adverts for authorized user via {@link AdvertRepository} and {@link UserRepository}
      *
-     * @return list of adverts
+     * @return {@link ResponseWrapperAdsDto}
      */
     public ResponseWrapperAdsDto findAllByAuthUser() {
         log.info("Find adverts by user name");
