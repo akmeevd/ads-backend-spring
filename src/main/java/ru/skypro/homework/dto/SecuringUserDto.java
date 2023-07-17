@@ -9,7 +9,6 @@ import ru.skypro.homework.model.Role;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SecuringUserDto {
-
     private String username;
     private String password;
     private Role role;

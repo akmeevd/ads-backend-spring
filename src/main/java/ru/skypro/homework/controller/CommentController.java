@@ -18,7 +18,7 @@ import ru.skypro.homework.service.CommentService;
 @CrossOrigin(value = "http://localhost:3000")
 @RestController
 @RequestMapping("/ads")
-@Tag(name = "Комментарии")
+@Tag(name = "Comments")
 public class CommentController {
     private final CommentService commentService;
 
@@ -27,7 +27,7 @@ public class CommentController {
     }
 
     @PostMapping("/{id}/comments")
-    @Operation(summary = "Добавить комментарий к объявлению", responses = {
+    @Operation(summary = "Add comment to advert", responses = {
             @ApiResponse(responseCode = "201", content = {@Content(schema = @Schema(
                     implementation = CommentDto.class), mediaType = MediaType.APPLICATION_JSON_VALUE)}),
             @ApiResponse(responseCode = "401", content = {@Content(schema = @Schema())})}
@@ -38,7 +38,7 @@ public class CommentController {
     }
 
     @DeleteMapping("/{adId}/comments/{commentId}")
-    @Operation(summary = "Удалить комментарий", responses = {
+    @Operation(summary = "Delete comment", responses = {
             @ApiResponse(responseCode = "200", content = {@Content(schema = @Schema())}),
             @ApiResponse(responseCode = "401", content = {@Content(schema = @Schema())}),
             @ApiResponse(responseCode = "403", content = {@Content(schema = @Schema())})}
@@ -50,7 +50,7 @@ public class CommentController {
     }
 
     @PatchMapping("/{adId}/comments/{commentId}")
-    @Operation(summary = "Обновить комментарий", responses = {
+    @Operation(summary = "Update comment", responses = {
             @ApiResponse(responseCode = "200", content = {@Content(schema = @Schema(
                     implementation = CommentDto.class), mediaType = MediaType.APPLICATION_JSON_VALUE)}),
             @ApiResponse(responseCode = "401", content = {@Content(schema = @Schema())}),
@@ -63,7 +63,7 @@ public class CommentController {
     }
 
     @GetMapping("/{id}/comments")
-    @Operation(summary = "Получить комментарии объявления", responses = {
+    @Operation(summary = "Get comments for advert", responses = {
             @ApiResponse(responseCode = "200", content = {@Content(schema = @Schema(
                     implementation = ResponseWrapperCommentDto.class), mediaType = MediaType.APPLICATION_JSON_VALUE)}),
             @ApiResponse(responseCode = "401", content = {@Content(schema = @Schema())})}

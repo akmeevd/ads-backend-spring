@@ -1,7 +1,5 @@
 package ru.skypro.homework.service;
 
-import liquibase.pro.packaged.M;
-import liquibase.pro.packaged.O;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -11,7 +9,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.Authentication;
 import ru.skypro.homework.component.AuthenticationComponent;
 import ru.skypro.homework.dto.CommentDto;
-import ru.skypro.homework.dto.ResponseWrapperAdsDto;
 import ru.skypro.homework.dto.ResponseWrapperCommentDto;
 import ru.skypro.homework.exception.ActionForbiddenException;
 import ru.skypro.homework.exception.CommentNotFoundException;
@@ -188,7 +185,7 @@ public class CommentServiceTest {
         commentDto.setPk(11);
         doReturn(Optional.of(comment)).when(commentRepository).findById(anyInt());
         doReturn(Optional.of(comment.getAdvert())).when(advertRepository).findById(anyInt());
-        doReturn(isAuthenticationNull).when(auth).check(any());
+        doReturn(isAuthenticationNull).when(auth).checkAuthNotEnough(any());
         assertThrows(ActionForbiddenException.class,
                 () -> commentService.delete(comment.getAdvert().getId(), comment.getId()));
         assertThrows(ActionForbiddenException.class,

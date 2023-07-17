@@ -12,7 +12,7 @@ public class AuthenticationComponent implements IAuthenticationFacade {
         return SecurityContextHolder.getContext().getAuthentication();
     }
 
-    public boolean check(String username) {
+    public boolean checkAuthNotEnough(String username) {
         if (getAuth() == null) {
             return true;
         } else if (checkAdminRole()) {
@@ -22,12 +22,12 @@ public class AuthenticationComponent implements IAuthenticationFacade {
         }
     }
 
-    public boolean checkAdminRole() {
+    private boolean checkAdminRole() {
         return getAuth().getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals(Role.ADMIN.getAuthority()));
     }
 
-    public boolean checkUsername(String username) {
+    private boolean checkUsername(String username) {
         return getAuth().getName().equals(username);
     }
 }
