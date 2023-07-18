@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
@@ -20,13 +21,12 @@ import ru.skypro.homework.exception.ActionForbiddenException;
 import ru.skypro.homework.exception.AdvertNotFoundException;
 import ru.skypro.homework.exception.UserUnauthorizedException;
 import ru.skypro.homework.mapper.AdvertMapper;
+import ru.skypro.homework.mapper.AdvertMapperImpl;
 import ru.skypro.homework.model.*;
 import ru.skypro.homework.repository.AdvertRepository;
 import ru.skypro.homework.repository.UserRepository;
 
 import java.io.*;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.util.List;
 import java.util.Optional;
@@ -36,13 +36,10 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(MockitoExtension.class)
 public class AdvertServiceTest {
-
     @InjectMocks
     private AdvertService advertService;
     @Mock
     private AdvertRepository advertRepository;
-    @Mock
-    private AdvertMapper advertMapper;
     @Mock
     private UserRepository userRepository;
     @Mock
@@ -51,196 +48,191 @@ public class AdvertServiceTest {
     private AuthenticationComponent auth;
     @Mock
     private Authentication authentication;
-    private MockMultipartFile mockMultipartFile;
-    private Advert advert;
-
+    @Spy
+    private AdvertMapper advertMapper = new AdvertMapperImpl();
 
     @BeforeEach
-    public void setup() throws IOException {
-        User user = new User();
-        user.setId(1);
-        user.setRole(Role.ADMIN);
-        advert = new Advert();
-        advert.setId(1);
-        advert.setAuthor(user);
-        advert.setPhoto(new Photo());
-        Resource resource = new ClassPathResource("picture/images.jpeg");
-        mockMultipartFile = new MockMultipartFile(
-                "image",
-                "image.jpeg",
-                MediaType.IMAGE_JPEG_VALUE,
-                Files.readAllBytes(resource.getFile().toPath())
-        );
+    public void setup() {
     }
 
     @Test
     public void create() {
-        CreateAdsDto properties = new CreateAdsDto();
-        AdsDto expectedAdsDto = new AdsDto();
-        doReturn(advert).when(advertMapper).createAdsDtoToAdvert(any());
-        doReturn(expectedAdsDto).when(advertMapper).advertToAdsDto(any());
-        AdsDto actualAdsDto = advertService.create(properties, mockMultipartFile);
-        assertNotNull(actualAdsDto);
-        assertEquals(expectedAdsDto, actualAdsDto);
-    }
-
-    @Test
-    public void update() {
-        CreateAdsDto createAdsDto = new CreateAdsDto();
-        AdsDto expectedAdsDto = new AdsDto();
-        doReturn(Optional.of(advert)).when(advertRepository).findById(any());
-        doNothing().when(advertMapper).updateAdvert(isA(CreateAdsDto.class), isA(Advert.class));
-        doReturn(advert).when(advertRepository).save(any());
-        doReturn(expectedAdsDto).when(advertMapper).advertToAdsDto(advert);
-        AdsDto actualAdsDto = advertService.update(advert.getId(), createAdsDto);
-        assertNotNull(actualAdsDto);
-        assertEquals(expectedAdsDto, actualAdsDto);
+        //Given
+        AdsDto expected = advertMapper.advertToAdsDto(mockAdvert());
+        doReturn(authentication).when(auth).getAuth();
+        doReturn(mockAdvert().getAuthor().getUsername()).when(authentication).getName();
+        doReturn(mockAdvert().getPhoto()).when(imageService).uploadPhoto(any());
+        doReturn(mockAdvert().getAuthor()).when(userRepository).findByUsername(mockAdvert().getAuthor().getUsername());
+        doReturn(mockAdvert()).when(advertRepository).save(any());
+        //When
+        AdsDto actual = advertService.create(mockCreateAdsDto(), mockFile());
+        //Then
+        assertNotNull(actual);
+        assertEquals(expected, actual);
+        verify(imageService, times(1)).uploadPhoto(any());
+        verify(userRepository, times(1)).findByUsername(mockAdvert().getAuthor().getUsername());
+        verify(advertRepository, times(1)).save(any());
     }
 
     @Test
     public void delete() {
-        doReturn(Optional.of(advert)).when(advertRepository).findById(any());
-        advertService.delete(advert.getId());
+        //Given
+        doReturn(Optional.of(mockAdvert())).when(advertRepository).findById(any());
+        //When
+        advertService.delete(mockAdvert().getId());
+        //Then
         verify(advertRepository, times(1)).delete(any());
+        verify(imageService, times(1)).deleteFile(any());
+    }
+
+    @Test
+    public void update() {
+        //Given
+        AdsDto expected = advertMapper.advertToAdsDto(mockAdvert());
+        doReturn(Optional.of(mockAdvert())).when(advertRepository).findById(any());
+        //When
+        AdsDto actual = advertService.update(1, mockCreateAdsDto());
+        //Then
+        assertNotNull(actual);
+        assertEquals(expected, actual);
+        verify(advertRepository, times(1)).save(any());
     }
 
     @Test
     public void updateImage() throws IOException {
-        doReturn(Optional.of(advert)).when(advertRepository).findById(any());
-        doReturn(advert.getPhoto()).when(imageService).uploadPhoto(any(), any());
-        byte[] actualImageBytes = advertService.updateImage(advert.getId(), mockMultipartFile);
+        //Given
+        doReturn(Optional.of(mockAdvert())).when(advertRepository).findById(any());
+        doReturn(mockAdvert().getPhoto()).when(imageService).uploadPhoto(any(), any());
+        //When
+        byte[] actualImageBytes = advertService.updateImage(mockAdvert().getId(), mockFile());
+        //Then
         assertNotNull(actualImageBytes);
-        assertArrayEquals(mockMultipartFile.getBytes(), actualImageBytes);
+        assertArrayEquals(mockFile().getBytes(), actualImageBytes);
     }
 
     @Test
     public void downloadImage() {
-        doReturn(Optional.of(advert)).when(advertRepository).findById(any());
-        Image actualPhoto = advertService.downloadImage(advert.getId());
+        //Given
+        doReturn(Optional.of(mockAdvert())).when(advertRepository).findById(any());
+        //When
+        Image actualPhoto = advertService.downloadImage(mockAdvert().getId());
+        //Then
         assertNotNull(actualPhoto);
-        assertEquals(advert.getPhoto(), actualPhoto);
+        assertEquals(mockAdvert().getPhoto(), actualPhoto);
     }
 
     @Test
     public void findAll() {
+        //Given
         AdsDto adsDto = new AdsDto();
-        adsDto.setPk(advert.getId());
-        ResponseWrapperAdsDto expectedResponseWrapperAdsDto = new ResponseWrapperAdsDto();
-        expectedResponseWrapperAdsDto.setCount(1);
-        expectedResponseWrapperAdsDto.setResults(List.of(adsDto));
-        doReturn(List.of(advert)).when(advertRepository).findAll();
-        doReturn(expectedResponseWrapperAdsDto).when(advertMapper).listToRespWrapperAdsDto(any());
-        ResponseWrapperAdsDto actualResponseWrapperAdsDto = advertService.findAll();
-        assertEquals(expectedResponseWrapperAdsDto, actualResponseWrapperAdsDto);
+        adsDto.setPk(mockAdvert().getId());
+        ResponseWrapperAdsDto expected = new ResponseWrapperAdsDto();
+        expected.setCount(1);
+        expected.setResults(List.of(adsDto));
+        doReturn(List.of(mockAdvert())).when(advertRepository).findAll();
+        doReturn(expected).when(advertMapper).listToRespWrapperAdsDto(any());
+        //When
+        ResponseWrapperAdsDto actual = advertService.findAll();
+        //Then
+        assertEquals(expected, actual);
     }
 
     @Test
     public void findById() {
-        FullAdsDto expectedFullAdsDto = new FullAdsDto();
-        expectedFullAdsDto.setPk(advert.getId());
-        doReturn(Optional.of(advert)).when(advertRepository).findById(any());
-        doReturn(expectedFullAdsDto).when(advertMapper).advertToFullAdsDto(any());
-        FullAdsDto actualFullAdsDto = advertService.findById(advert.getId());
+        //Given
+        FullAdsDto expected = advertMapper.advertToFullAdsDto(mockAdvert());
+        doReturn(Optional.of(mockAdvert())).when(advertRepository).findById(any());
+        doReturn(expected).when(advertMapper).advertToFullAdsDto(any());
+        //When
+        FullAdsDto actualFullAdsDto = advertService.findById(mockAdvert().getId());
+        //Then
         assertNotNull(actualFullAdsDto);
-        assertEquals(expectedFullAdsDto, actualFullAdsDto);
+        assertEquals(expected, actualFullAdsDto);
     }
 
     @Test
     public void findAllByAuthUser() {
-        User user = advert.getAuthor();
-        ResponseWrapperAdsDto expectedResponseWrapperAdsDto = new ResponseWrapperAdsDto();
-        AdsDto adsDto = new AdsDto();
-        adsDto.setPk(advert.getId());
-        expectedResponseWrapperAdsDto.setCount(1);
-        expectedResponseWrapperAdsDto.setResults(List.of(adsDto));
-        doReturn(user).when(userRepository).findByUsername(any());
+        //Given
+        ResponseWrapperAdsDto expected = advertMapper.listToRespWrapperAdsDto(List.of(mockAdvert()));
+        doReturn(mockAdvert().getAuthor()).when(userRepository).findByUsername(any());
         doReturn(authentication).when(auth).getAuth();
-        doReturn(List.of(advert)).when(advertRepository).findByAuthorId(anyInt());
-        doReturn(expectedResponseWrapperAdsDto).when(advertMapper).listToRespWrapperAdsDto(List.of(advert));
-        ResponseWrapperAdsDto actualResponseWrapperAdsDto = advertService.findAllByAuthUser();
-        assertNotNull(actualResponseWrapperAdsDto);
-        assertEquals(expectedResponseWrapperAdsDto, actualResponseWrapperAdsDto);
+        doReturn(List.of(mockAdvert())).when(advertRepository).findByAuthorId(anyInt());
+        doReturn(expected).when(advertMapper).listToRespWrapperAdsDto(List.of(mockAdvert()));
+        //When
+        ResponseWrapperAdsDto actual = advertService.findAllByAuthUser();
+        //Then
+        assertNotNull(actual);
+        assertEquals(expected, actual);
     }
 
     @Test
-    public void findAdvert() throws NoSuchMethodException,
-            InvocationTargetException, IllegalAccessException {
-        doReturn(Optional.of(advert)).when(advertRepository).findById(anyInt());
-        Class[] parameters = new Class[1];
-        parameters[0] = int.class;
-        Method method = advertService
-                .getClass()
-                .getDeclaredMethod("findAdvert", parameters);
-        method.setAccessible(true);
-        Object[] methodArguments = new Object[1];
-        methodArguments[0] = advert.getId();
-        Advert actualAdvert = (Advert) method.invoke(advertService, methodArguments);
-        assertNotNull(actualAdvert);
-        assertEquals(advert, actualAdvert);
-    }
-
-    @Test
-    public void findAdvertWithAuth() throws NoSuchMethodException,
-            InvocationTargetException, IllegalAccessException {
-        doReturn(Optional.of(advert)).when(advertRepository).findById(any());
-        Class[] parameters = new Class[1];
-        parameters[0] = int.class;
-        Method method = advertService
-                .getClass()
-                .getDeclaredMethod("findAdvertWithAuth", parameters);
-        method.setAccessible(true);
-        Object[] arguments = new Object[1];
-        arguments[0] = advert.getId();
-        Advert actualAdvert = (Advert) method.invoke(advertService, arguments);
-        assertNotNull(actualAdvert);
-        assertEquals(advert, actualAdvert);
-    }
-
-    @Test
-    public void findAdvertsWithAuth() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-        User user = advert.getAuthor();
-        doReturn(user).when(userRepository).findByUsername(any());
-        doReturn(authentication).when(auth).getAuth();
-        doReturn(List.of(advert)).when(advertRepository).findByAuthorId(anyInt());
-        Method method = advertService
-                .getClass()
-                .getDeclaredMethod("findAdvertsWithAuth");
-        method.setAccessible(true);
-        List<Advert> actualAdverts = (List<Advert>) method.invoke(advertService);
-        assertNotNull(actualAdverts);
-        assertEquals(List.of(advert), actualAdverts);
-    }
-
-//    @Test
-//    public void deleteByAdmin() {
-//        User user = advert.getAuthor();
-//        doReturn(user).when(userRepository).findByUsername(any());
-//        doReturn(Optional.of(advert)).when(advertRepository).findById(anyInt());
-//        advertService.deleteByAdmin(advert.getId(), authentication);
-//        verify(advertRepository, times(1)).delete(any());
-//    }
-
-    @Test
-    public void DoesThrowUserUnauthorizedExceptionWhenFindAdvertsWithAuth(){
+    public void DoesThrowUserUnauthorizedExceptionWhenFindAdvertsWithAuth() {
+        //Given
         doReturn(null).when(userRepository).findByUsername(any());
         doReturn(authentication).when(auth).getAuth();
+        //Then
         assertThrows(UserUnauthorizedException.class,
                 () -> advertService.findAllByAuthUser());
     }
 
     @Test
     public void DoesThrowAdvertNotFoundExceptionExceptionWhenFindAdvertWithAuth() {
+        //Given
         doReturn(Optional.empty()).when(advertRepository).findById(anyInt());
+        //Then
         assertThrows(AdvertNotFoundException.class,
-                () -> advertService.updateImage(anyInt(), mockMultipartFile));
+                () -> advertService.updateImage(anyInt(), mockFile()));
     }
 
     @Test
     public void DoesThrowActionForbiddenExceptionWhenFindAdvertWithAuth() {
-        boolean isAuthenticationNull = true;
-        doReturn(Optional.of(advert)).when(advertRepository).findById(anyInt());
-        doReturn(isAuthenticationNull).when(auth).checkAuthNotEnough(any());
+        //Given
+        doReturn(Optional.of(mockAdvert())).when(advertRepository).findById(anyInt());
+        doReturn(true).when(auth).checkAuthNotEnough(any());
+        //Then
         assertThrows(ActionForbiddenException.class,
-                () -> advertService.updateImage(anyInt(), mockMultipartFile));
+                () -> advertService.updateImage(anyInt(), mockFile()));
+    }
+
+    private Advert mockAdvert() {
+        User user = new User();
+        user.setId(1);
+        user.setUsername("admin@ru");
+
+        Photo photo = new Photo();
+        photo.setId(1);
+        photo.setFileName("file");
+        photo.setFileExtension("jpeg");
+
+        Advert advert = new Advert();
+        advert.setId(1);
+        advert.setTitle("title");
+        advert.setDescription("descr");
+        advert.setPrice(11);
+        advert.setPhoto(photo);
+        advert.setAuthor(user);
+        return advert;
+    }
+
+    private CreateAdsDto mockCreateAdsDto() {
+        CreateAdsDto createAdsDto = new CreateAdsDto();
+        createAdsDto.setTitle(mockAdvert().getTitle());
+        createAdsDto.setDescription(mockAdvert().getDescription());
+        createAdsDto.setPrice(mockAdvert().getPrice());
+        return createAdsDto;
+    }
+
+    private MockMultipartFile mockFile() {
+        try {
+            Resource resource = new ClassPathResource("picture/images.jpeg");
+            return new MockMultipartFile(
+                    "image",
+                    "image.jpeg",
+                    MediaType.IMAGE_JPEG_VALUE,
+                    Files.readAllBytes(resource.getFile().toPath())
+            );
+        } catch (IOException exception) {
+            throw new RuntimeException(exception.getMessage());
+        }
     }
 }

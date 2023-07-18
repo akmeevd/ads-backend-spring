@@ -15,6 +15,9 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+/**
+ * Service for maintain images via {@link ImageRepository}
+ */
 @Service
 @Slf4j
 public class ImageService {

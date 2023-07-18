@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Service maintain comments from {@link CommentRepository}
+ * Service for maintain comments via {@link CommentRepository}
  */
 @Service
 @Slf4j
@@ -100,10 +100,10 @@ public class CommentService {
      * Find all comment for advert via {@link CommentRepository}
      *
      * @param advertId advert id
-     * @return {@link ResponseWrapperCommentDto} contains number of comments and list of comments
+     * @return {@link ResponseWrapperCommentDto}
      */
     public ResponseWrapperCommentDto findAll(Integer advertId) {
-        log.info("getting all comments for advert with id: " + advertId);
+        log.info("Get all comments for advert with id: " + advertId);
         List<Comment> comments = commentRepository.findAllByAdvertId(advertId);
         return commentMapper.listToRespWrapperCommentDto(comments);
     }
@@ -113,7 +113,7 @@ public class CommentService {
                 .orElseThrow(() -> new AdvertNotFoundException("Advert not found"));
     }
 
-    public Comment findCommentWithAuth(Advert advert, int id) {
+    private Comment findCommentWithAuth(Advert advert, int id) {
         Optional<Comment> comment = commentRepository.findById(id);
         if (comment.isEmpty()) {
             throw new CommentNotFoundException("Comment not found");

@@ -22,6 +22,7 @@ import org.springframework.web.context.WebApplicationContext;
 import ru.skypro.homework.dto.*;
 import ru.skypro.homework.model.Advert;
 import ru.skypro.homework.model.Image;
+import ru.skypro.homework.model.Photo;
 import ru.skypro.homework.service.AdvertService;
 
 import java.nio.file.Path;
@@ -91,7 +92,7 @@ public class AdvertControllerTest {
         AdsDto adsDto = new AdsDto();
         adsDto.setTitle("title");
         adsDto.setPrice(1000);
-        Mockito.doReturn(adsDto).when(advertService).create(any(), any(), any());
+        Mockito.doReturn(adsDto).when(advertService).create(any(), any());
         mockMvc.perform(multipart("/ads")
                         .file(file1)
                         .file(file2))
@@ -150,10 +151,10 @@ public class AdvertControllerTest {
 
     @Test
     public void downloadImage() throws Exception {
-        Image image = new Image();
-        Path path = Path.of("src\\test\\resources\\picture");
+        Image image = new Photo();
+        Path path = Path.of("src/test/resources/picture");
         image.setId(1);
-        image.setPhotoDir(path.toAbsolutePath().toString());
+        image.setImageDir(path.toAbsolutePath().toString());
         image.setFileExtension("jpeg");
         Mockito.doReturn(image).when(advertService).downloadImage(anyInt());
         mockMvc.perform(get("/ads/" + advert.getId() + "/image"))
