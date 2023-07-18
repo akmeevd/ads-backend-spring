@@ -93,11 +93,11 @@ public class UserControllerTest {
     @Test
     public void downloadAvatar() throws Exception {
         Avatar avatar = new Avatar();
-        Path path = Path.of("src\\test\\resources\\picture");
+        Path path = Path.of("src/test/resources/picture");
         avatar.setId(1);
-        avatar.setPhotoDir(path.toAbsolutePath().toString());
+        avatar.setImageDir(path.toAbsolutePath().toString());
         avatar.setFileExtension("jpeg");
-        doReturn(avatar).when(userService).downloadAvatar();
+        doReturn(avatar).when(userService).downloadImage();
         mockMvc.perform(get("/users/me/image"))
                 .andExpect(status().isOk());
     }
@@ -105,11 +105,11 @@ public class UserControllerTest {
     @Test
     public void downloadAvatar_2() throws Exception {
         Avatar avatar = new Avatar();
-        Path path = Path.of("src\\test\\resources\\picture");
+        Path path = Path.of("src/test/resources/picture");
         avatar.setId(1);
-        avatar.setPhotoDir(path.toAbsolutePath().toString());
+        avatar.setImageDir(path.toAbsolutePath().toString());
         avatar.setFileExtension("jpeg");
-        doReturn(avatar).when(userService).downloadAvatarByUserId(anyInt());
+        doReturn(avatar).when(userService).downloadImageByUserId(anyInt());
         mockMvc.perform(get("/users/" + userDto.getId() + "/image"))
                 .andExpect(status().isOk());
     }
@@ -117,7 +117,7 @@ public class UserControllerTest {
     @Test
     public void updateAvatar() throws Exception {
         byte[] bytes = {1};
-        doReturn(bytes).when(userService).updateAvatar(any());
+        doReturn(bytes).when(userService).updateImage(any());
         mockMvc.perform(multipart(HttpMethod.PATCH, "/users/me/image")
                         .file(file))
                 .andExpect(status().isOk());

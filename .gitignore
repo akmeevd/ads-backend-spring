@@ -33,3 +33,4 @@ build/
 .vscode/
 /photos/
 /avatars/
+/src/test/resources/picture/test/

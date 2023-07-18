@@ -13,7 +13,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
-import ru.skypro.homework.service.impl.AuthServiceImpl;
+import ru.skypro.homework.service.AuthService;
 
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -27,7 +27,7 @@ public class AuthControllerTest {
     @Autowired
     private WebApplicationContext context;
     @MockBean
-    private AuthServiceImpl authService;
+    private AuthService authService;
     private MockMvc mockMvc;
     private JSONObject jsonRegisterReqDto;
     private JSONObject jsonLoginReqDto;
