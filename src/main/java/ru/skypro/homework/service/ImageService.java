@@ -8,6 +8,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 import ru.skypro.homework.exception.ImageUploadException;
 import ru.skypro.homework.model.*;
+import ru.skypro.homework.repository.CommentRepository;
 import ru.skypro.homework.repository.ImageRepository;
 import ru.skypro.homework.repository.UserRepository;
 
@@ -15,6 +16,9 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+/**
+ * Service for maintain images via {@link ImageRepository}
+ */
 @Service
 @Slf4j
 public class ImageService {

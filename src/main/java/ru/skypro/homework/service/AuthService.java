@@ -7,7 +7,11 @@ import org.springframework.security.provisioning.JdbcUserDetailsManager;
 import org.springframework.stereotype.Service;
 import ru.skypro.homework.dto.RegisterReqDto;
 import ru.skypro.homework.model.Role;
+import ru.skypro.homework.repository.AdvertRepository;
 
+/**
+ * Service provides auth functionality
+ */
 @Service
 @Slf4j
 public class AuthService {
@@ -26,8 +30,8 @@ public class AuthService {
     /**
      * Register new user
      *
-     * @param registerReq register data
-     * @param role        role
+     * @param registerReq {@link RegisterReqDto}
+     * @param role        {@link Role}
      * @return true - success register, false - register failed
      */
     public boolean register(RegisterReqDto registerReq, Role role) {
