@@ -44,8 +44,6 @@ public class UserServiceTest {
     @Mock
     private JdbcUserDetailsManager jdbcUserDetailsManager;
     @Mock
-    private AuthService authService;
-    @Mock
     private AuthenticationComponent authenticationComponent;
     private User user;
     @Mock
@@ -57,7 +55,7 @@ public class UserServiceTest {
     private MockMultipartFile avatar;
 
     @BeforeEach
-    public void setup() throws IOException {
+    public void setup() {
         Path path = Path.of("src", "test\\resources\\picture\\images.jpeg");
         File file = new File(path.toUri());
         byte[] bytes = file.getAbsolutePath().getBytes();
@@ -71,7 +69,6 @@ public class UserServiceTest {
     @Test
     public void create() {
         doReturn(user).when(userRepository).findByUsername(any());
-        //doReturn(authentication).when(authenticationComponent).getAuth();
         RegisterReqDto reqDto = new RegisterReqDto();
         userService.create(reqDto, Role.USER);
         verify(userRepository, Mockito.times(1)).save(any());
@@ -80,7 +77,6 @@ public class UserServiceTest {
     @Test
     public void update() {
         doReturn(user).when(userRepository).findByUsername(any());
-        //doReturn(authentication).when(authenticationComponent).getAuth();
         RegisterReqDto reqDto = new RegisterReqDto();
         userService.update(reqDto, Role.USER);
         verify(userRepository, Mockito.times(1)).save(any());
@@ -109,7 +105,7 @@ public class UserServiceTest {
     public void updateAvatar() throws IOException {
         doReturn(user).when(userRepository).findByUsername(any());
         doReturn(authentication).when(authenticationComponent).getAuth();
-        byte[] bytes  = userService.updateImage(avatar);
+        byte[] bytes = userService.updateImage(avatar);
         verify(imageService, Mockito.times(1)).
                 uploadAvatar(user, avatar);
         assertEquals(bytes, avatar.getBytes());
