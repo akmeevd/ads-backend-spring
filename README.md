@@ -13,7 +13,7 @@ Spring-boot приложение, которое реализует бэкенд
 - PostgreSQL
 
 ## Запуск приложения:
-1. Для запуска фронтенд-части используйте docker образ `docker run --rm -p 3000:3000 ghcr.io/bizinmitya/front-react-avito:v1.13`
+1. Для запуска фронтенд-части используйте docker образ `docker run --rm -p 3000:3000 ghcr.io/11th/ads-frontend-react:latest`
 2. Для запуска бэкенд-части:
 - собрать jar файл с помощью команды `mvn clean install`
 - запустить приложение из папки target с помощью команды `java -Dspring.datasource.username=*** -Dspring.datasource.password=*** -jar ads-0.0.1-SNAPSHOT.jar`, где *** - имя пользователя и пароль к БД.
