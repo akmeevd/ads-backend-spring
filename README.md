@@ -12,7 +12,7 @@ Spring-boot app implements backend for advertising site
 - ![spring security](https://img.shields.io/badge/spring_security-green)
 - ![postgresql](https://img.shields.io/badge/postgresql-blue)
 
-## Запуск приложения:
+## application launch:
 1. to run frontend part use docker image `docker run --rm -p 3000:3000 ghcr.io/11th/ads-frontend-react:latest`
 2. for running backend part:
 - pack jar file by command `mvn clean install`
