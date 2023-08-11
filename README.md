@@ -1,4 +1,5 @@
 # Graduate work for course Java-developer
+<span style="color:blue">some *blue* text</span>.
 
 ## Description:
 Spring-boot app implements backend for advertising site
