@@ -9,7 +9,7 @@ Spring-boot app implements backend for advertising site
 ## Stack:
 - Java 11 ![java11](https://img.shields.io/badge/java-11-red)
 - Spring Boot ![spring boot](https://img.shields.io/badge/spring-boot-green)
-- Spring Security ![spring security](https://img.shields.io/badge/spring-security-green)
+- Spring Security ![spring security](https://img.shields.io/badge/spring_security-green)
 - PostgreSQL ![postgresql](https://img.shields.io/badge/postgresql-blue)
 
 ## Запуск приложения:
