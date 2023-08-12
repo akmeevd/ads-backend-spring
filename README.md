@@ -1,6 +1,6 @@
 # Graduate work for course Java-developer
 
-![pink floyd](C:\\Users\User\Desktop\pink floyd.jpg)
+![pink floyd](src\test\resources\picture\images.jpeg)
 
 ## Description:
 spring-boot app implements backend for advertising site
