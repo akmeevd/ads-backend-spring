@@ -1,6 +1,6 @@
 # Graduate work for course Java-developer
 
-![pink floyd](ads-backend-spring/src/test/resources/picture/images.jpeg)
+![pink floyd](src/test/resources/picture/images.jpeg)
 
 ## Description:
 spring-boot app implements backend for advertising site
